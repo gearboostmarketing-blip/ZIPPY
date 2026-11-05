@@ -1,0 +1,14 @@
+# Real financial data - keep it out of git
+*backup*.json
+*.pdf
+messages*.html
+*.xlsx
+!HOH_Org_Receipt_Template.xlsx
+*.csv
+exports/
+
+# Mac app build output
+mac/build/
+
+.DS_Store
+Thumbs.db

@@ -1,0 +1,35 @@
+# Builds Zip-Receipt.dmg on a GitHub-hosted Mac whenever the app changes.
+# Download it from the Actions tab (run -> Artifacts), or from Releases when you push a tag like v1.0.
+name: Build Mac app
+
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "mac/**", ".github/workflows/build-mac.yml"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed only to attach the DMG to a Release on tag pushes
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app and DMG
+        run: ./mac/build.sh --universal --dmg
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: Zip-Receipt-dmg
+          path: mac/build/Zip-Receipt.dmg
+          retention-days: 90
+
+      - name: Attach to Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" mac/build/Zip-Receipt.dmg --title "Zip Receipt $GITHUB_REF_NAME" --notes "Mac installer. Open the DMG and drag Zip Receipt to Applications."
