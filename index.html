@@ -247,6 +247,7 @@ body.native .web-only{display:none}
 <main>
 <div class="monthbar" id="monthbar" hidden>
   <div class="mnav"><button id="m-prev" aria-label="Previous month">‹</button><select id="m-select" aria-label="Month"></select><button id="m-next" aria-label="Next month">›</button></div>
+  <label class="hint" style="display:flex;align-items:center;gap:6px">Go to month <input type="month" id="m-jump" style="padding:5px 6px"></label>
   <span class="hint" id="m-info"></span>
 </div>
 <div id="update-slot"></div>
@@ -771,6 +772,7 @@ function inMonth(d,m){ return (d||"").slice(0,7)===m; }
 function dataMonths(){
   const set=new Set(S.entries.map(e=>(e.date||"").slice(0,7)).concat(S.counts.map(c=>(c.date||"").slice(0,7))).filter(x=>/^\d{4}-\d{2}$/.test(x)));
   if(S.opening?.month) set.add(S.opening.month);
+  if(S.viewMonth&&/^\d{4}-\d{2}$/.test(S.viewMonth)) set.add(S.viewMonth);   // a month picked with "Go to month", even if empty
   set.add(thisMonth());
   const list=[...set].sort(); const out=[]; let m=list[0];
   while(m<=list[list.length-1]){ out.push(m); m=addMonths(m,1); }   // no gaps, so the balance can carry month to month
@@ -1055,10 +1057,10 @@ function applyWho(w){
 }
 function sharedSettings(){ const o={}; SHARED_SETTINGS.forEach(k=>o[k]=S.settings[k]); return o; }
 /* Local view of one location <-> cloud records */
-function collectLocal(){
+function collectLocal(fresh){
   const c=S.cloud; if(!CL.on||!c.locId) return; const loc=c.locId; c.recs=c.recs||{}; c.synced=c.synced||{}; c.dirty=c.dirty||{};
-  const seen=new Set();
-  const put=(id,kind,data,person)=>{ seen.add(id);
+  const seen=new Set(); fresh=fresh||new Set();
+  const put=(id,kind,data,person)=>{ seen.add(id); if(fresh.has(id)) return;   // just came from the cloud: keep that version
     const h=JSON.stringify([kind,person||null,data]);
     const r=c.recs[id]&&c.recs[id].location_id===loc?c.recs[id]:{id,org_id:c.org.id,location_id:loc};
     Object.assign(r,{kind,person_id:person||null,data,deleted:false}); c.recs[id]=r;
@@ -1066,7 +1068,7 @@ function collectLocal(){
   S.entries.forEach(e=>{ const p=personOf(e); put(e.id,"entry",e,p&&p!=="me"?p:null); });
   S.counts.forEach(x=>put(x.id,"count",x,null));
   put("meta:"+loc,"meta",{monthRates:S.monthRates||{},opening:S.opening||null,source:(S.books&&S.books.source)||""},null);
-  Object.values(c.recs).forEach(r=>{ if(r.location_id===loc&&!r.deleted&&r.kind!=="meta"&&!seen.has(r.id)){ r.deleted=true; c.dirty[r.id]=1; } });
+  Object.values(c.recs).forEach(r=>{ if(r.location_id===loc&&!r.deleted&&r.kind!=="meta"&&!seen.has(r.id)&&!fresh.has(r.id)){ r.deleted=true; c.dirty[r.id]=1; } });
 }
 function loadLocation(loc){
   const c=S.cloud, recs=Object.values(c.recs||{}).filter(r=>r.location_id===loc&&!r.deleted);
@@ -1091,11 +1093,11 @@ async function pushDirty(){
   return n;
 }
 async function pullAll(){
-  const c=S.cloud; let since=c.lastPull||"1970-01-01T00:00:00Z", changed=0;
+  const c=S.cloud; let since=c.lastPull||"1970-01-01T00:00:00Z", changed=0; c.fresh=new Set();
   for(;;){
     const rows=await sb("GET",`/rest/v1/records?select=*&updated_at=gte.${encodeURIComponent(since)}&order=updated_at.asc,id.asc&limit=1000`);
     rows.forEach(r=>{ if(c.dirty[r.id]) return; const h=JSON.stringify([r.kind,r.person_id||null,r.data]);
-      if(c.synced[r.id]!==h||!c.recs[r.id]||c.recs[r.id].deleted!==r.deleted){ changed++; c.recs[r.id]=r; } c.synced[r.id]=h; });
+      if(c.synced[r.id]!==h||!c.recs[r.id]||c.recs[r.id].deleted!==r.deleted){ changed++; c.recs[r.id]=r; c.fresh.add(r.id); } c.synced[r.id]=h; });
     if(rows.length) since=rows[rows.length-1].updated_at; if(rows.length<1000) break;
   }
   c.lastPull=since; return changed;
@@ -1110,7 +1112,10 @@ async function syncNow(opts={}){
     if(S.cloud.me.role==="admin" && JSON.stringify(sharedSettings())!==S.cloud.pushedSettings && S.cloud.settingsTouched){
       await sb("PATCH",`/rest/v1/orgs?id=eq.${S.cloud.org.id}`,{settings:{...(S.cloud.org.settings||{}),...sharedSettings()}},"return=minimal");
       S.cloud.pushedSettings=JSON.stringify(sharedSettings()); S.cloud.settingsTouched=false; }
-    const changed=await pullAll(); loadLocation(S.cloud.locId);
+    const changed=await pullAll();
+    collectLocal(S.cloud.fresh);            // keep edits made while this sync was running
+    loadLocation(S.cloud.locId);
+    if(Object.keys(S.cloud.dirty||{}).length) scheduleSync();
     S.cloud.lastSync=new Date().toISOString(); writeNow();
     const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&!document.activeElement.closest("dialog");
     if(changed||opts.render) { if(!typing||opts.render) renderAll(); }
@@ -2027,6 +2032,7 @@ function bind(){
   $("#m-prev").addEventListener("click",()=>{ const ms=dataMonths(), i=ms.indexOf(ui.month); if(i>0) setMonth(ms[i-1]); });
   $("#m-next").addEventListener("click",()=>{ const ms=dataMonths(), i=ms.indexOf(ui.month); if(i<ms.length-1) setMonth(ms[i+1]); });
   $("#m-select").addEventListener("change",e=>setMonth(e.target.value));
+  $("#m-jump").addEventListener("change",e=>{ if(/^\d{4}-\d{2}$/.test(e.target.value)) setMonth(e.target.value); e.target.value=""; });
   const rep=mode=>{ const h=reportHTML(); if(!h){ toast("Enter this month’s exchange rate first."); return; } doPrint("report",h,mode); };
   $("#print-report").addEventListener("click",()=>rep("pdf"));
   $("#print-report-dlg").addEventListener("click",()=>rep("print"));
