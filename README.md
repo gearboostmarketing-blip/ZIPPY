@@ -3,7 +3,7 @@
 Offline cash books and official org receipts for Hands of Hope (HOH), built from the cash log.
 
 - **Any computer:** open `index.html` in Chrome or Edge (double-click it). It needs no install and no internet.
-- **Phones:** staff log expenses and receipt photos on their phones (iPhone or Android). They go into your Google Sheet, and **Sync phones** pulls them in. See [`google-sheet/README.md`](google-sheet/README.md) and the separate `zip-receipt-phone` repository.
+- **Phones:** staff log expenses and receipt photos on the ZIPPY phone app (iPhone or Android, the `Zippy-Phone` repository). Everything syncs through ZIPPY cloud.
 - **Mac app:** saves automatically to `Documents/Zip_Receipt` and writes PDFs directly. GitHub builds a `Zip-Receipt.dmg` installer for you: see [`mac/README.md`](mac/README.md).
 - **Windows app:** the same, with a `Zip-Receipt-Setup.exe` installer that GitHub builds for you: see [`windows/README.md`](windows/README.md).
 
@@ -27,7 +27,7 @@ Without the cloud, Zip Receipt still works on its own as before.
 
 ## What it does
 
-1. **Import.** Drop in a Telegram chat export (*Export chat history → HTML*), a WhatsApp `.txt` export, or a spreadsheet (`.xlsx` or `.csv`), paste lines, or click **Sync phones**. Every line lands in its month by date. Nothing is ever cleared.
+1. **Import.** Drop in a Telegram chat export (*Export chat history → HTML*), a WhatsApp `.txt` export, or a spreadsheet (`.xlsx` or `.csv`), or paste lines. Phone expenses arrive by themselves through ZIPPY cloud. Every line lands in its month by date. Nothing is ever cleared.
 2. **Pick a month** with the switcher at the top of **Log**, **Books** and **Receipts**.
 3. **Log.** Review each amount: type (Expense, Advance, Salary, Money in, Safe count, Skip) and currency (IQD / USD). Yellow rows need a look. **Split** breaks up lines that bundle several purchases.
 4. **Books.** Everything in US dollars at the month's exchange rate. Each month opens with the balance carried from the month before; after a safe count, it carries the counted cash. The **safe count register** holds every count, from the desk or from phones, and the latest one is the month's actual. The month report exports as **PDF** or **Excel**.

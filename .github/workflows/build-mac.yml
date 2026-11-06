@@ -11,6 +11,11 @@ on:
     types: [published]   # publishing a release on github.com also builds and attaches the installers
   workflow_dispatch:
 
+# A release can start this twice (tag + published release): run them one after the other, never at once
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write   # needed only to attach the DMG to a Release on tag pushes
 

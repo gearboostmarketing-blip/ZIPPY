@@ -277,8 +277,8 @@ body.native .web-only{display:none}
     </div>
   </div>
   <div class="panel phonecard" style="margin-top:18px">
-    <div class="row"><div style="flex:1"><b>Phone log (Google Sheet)</b><div class="hint" id="sheet-sync-info">Expenses logged on phones arrive here.</div></div>
-      <button class="btn" id="sheet-setup">Set up</button><button class="btn primary" id="sheet-sync">Sync phones</button></div>
+    <div class="row"><div style="flex:1"><b>Phones</b><div class="hint" id="phones-info"></div></div>
+      <button class="btn" id="phones-btn"></button></div>
   </div>
   <div class="panel" style="margin-top:18px">
     <b>How it works</b>
@@ -303,7 +303,6 @@ body.native .web-only{display:none}
     <button class="btn" id="ent-reimb" title="Mark every line shown as paid from your advance">Mark shown as reimbursable</button>
     <select id="ent-scope" title="What to export"><option value="month">This month</option><option value="all">All months</option></select>
     <button class="btn" id="ent-xlsx">Export Excel</button>
-    <button class="btn" id="ent-sync" hidden>Sync phones</button>
     <button class="btn" id="ent-add">Add line</button>
   </div>
   <div class="tablewrap"><table class="data" id="ent-table"></table></div>
@@ -524,16 +523,6 @@ body.native .web-only{display:none}
     <div class="full" id="cloud-box"></div>
     <label class="f full">Phone app address (invite links open this)<input type="text" data-s="phoneUrl" placeholder="https://…github.io/zip-receipt-phone/"></label>
 
-    <h3 class="full set-h" id="sheet-h">Phones &amp; Google Sheet (older setup)</h3>
-    <div class="full sheet-only" style="display:contents">
-    <label class="f full">Google Sheet link (the web app address ending in /exec)<input type="text" data-s="sheetUrl" placeholder="https://script.google.com/macros/s/…/exec"></label>
-    <label class="f">Access code<input type="text" data-s="sheetCode" placeholder="from the sheet’s setup"></label>
-    <div class="full row"><button class="btn small" id="sheet-test">Test connection</button><button class="btn small" id="phone-link-btn">Make phone setup link</button><span class="hint" id="sheet-status"></span></div>
-    <div class="full" id="phone-link-box" hidden>
-      <div class="row"><input type="text" id="phone-link" readonly style="flex:1"><button class="btn small primary" id="phone-link-copy">Copy</button></div>
-      <p class="hint" style="margin:4px 0 0">Send this link privately (it contains the access code). Opening it on a phone sets up the phone app in one tap.</p>
-    </div>
-    </div>
   </div>
   <div class="df">
     <button class="btn" id="backup-save">Save backup file</button>
@@ -561,7 +550,7 @@ const DEFAULT_SETTINGS = {
   orgName:"Hands of Hope organization for help, (HOH)", orgEmail:"Email: hohkurdistan@gmail.com",
   receiptTitle:"Org Receipt", statement:"I, {payer}, paid for these items at the specified price.",
   payer:"", verifier:"", defaultCurrency:"IQD", defaultProject:"", rate:"",
-  useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:"", me:""
+  useSignatures:true, signatures:{}, phoneUrl:"", me:""
 };
 
 const APP_VERSION = "2.2";
@@ -965,64 +954,6 @@ function sheetDialog(fileName, sheets){
 }
 
 
-/* ---------- Google Sheet (phone log) ---------- */
-async function sheetCall(params, body){
-  const st=S.settings; if(!st.sheetUrl) throw new Error("Add the Google Sheet link in Settings first.");
-  const url=st.sheetUrl.trim()+(st.sheetUrl.includes("?")?"&":"?")+new URLSearchParams({...params, code:(st.sheetCode||"").trim()});
-  let text;
-  try{ const r=await fetch(url, body?{method:"POST",body:JSON.stringify(body)}:{}); text=await r.text(); }
-  catch(err){
-    if(NATIVE){ try{ text=await native({cmd:"http",url,body:body?JSON.stringify(body):null}); }catch(e2){ throw new Error("Couldn’t reach Google ("+(e2.message||e2)+")."); } }
-    else throw new Error("Couldn’t reach Google. Check the internet connection and the sheet link.");
-  }
-  let d; try{ d=JSON.parse(text); }catch(e){ throw new Error("That link didn’t answer like the ZIPPY sheet script. It should end in /exec."); }
-  if(!d.ok) throw new Error(d.error||"The sheet returned an error.");
-  return d;
-}
-function rowToEntry(x){
-  const amount=num(x.amount); if(!x.id||!amount) return null;
-  const e=makeEntry({key:"sheet:"+x.id, source:"Phone log", date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")?x.date:today(), time:String(x.loggedAt||"").slice(11,16),
-    who:x.who||"", text:[x.description,x.business,x.note].filter(Boolean).join(" · "), desc:x.description||"(no description)",
-    amount:Math.abs(amount), currency:String(x.currency).toUpperCase()==="USD"?"USD":"IQD", type:"expense", receipt:true, flags:[],
-    photo:x.photoUrl||"", noShopReceipt:String(x.hasReceipt).toLowerCase()==="no"});
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")) e.flags.push("no date from phone");
-  if(x.reimbursable===true||String(x.reimbursable).toLowerCase()==="yes") e.reimb=true;
-  const rc=getRc(e); ["business","category","project"].forEach(k=>{ if(x[k]) rc[k]=String(x[k]); });
-  if(x.note) rc.note=String(x.note);
-  return e;
-}
-function sheetInfo(){
-  const st=S.settings, el=$("#sheet-sync-info"); if(!el) return;
-  $("#ent-sync").hidden=!st.sheetUrl;
-  el.textContent = !st.sheetUrl ? "Not set up yet. Phones log expenses into a Google Sheet, and this button pulls them in."
-    : S.lastSheetSync ? `Last synced ${new Date(S.lastSheetSync).toLocaleString([], {dateStyle:"medium",timeStyle:"short"})}.` : "Ready. Click Sync phones to pull in expenses logged on phones.";
-}
-async function syncFromSheet(btn){
-  if(!S.settings.sheetUrl){ openSettings("sheet"); return; }
-  const label=btn?.textContent; if(btn){ btn.disabled=true; btn.textContent="Syncing…"; }
-  try{ const d=await sheetCall({action:"list"});
-    // Remember every phone expense ever pulled in, so "Start new month" doesn't bring old months back
-    const seen=new Set(S.sheetSeen||[]); S.entries.forEach(e=>{ if(String(e.key).startsWith("sheet:")) seen.add(e.key.slice(6)); });
-    const fresh=(d.rows||[]).filter(x=>x.id&&!seen.has(String(x.id)));
-    let nCounts=0;
-    fresh.filter(x=>/count/i.test(x.type||"")).forEach(x=>{ seen.add(String(x.id)); nCounts++;
-      S.counts.push({id:"sheet:"+x.id,date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")?x.date:today(),time:String(x.loggedAt||"").slice(11,16),
-        iqd:num(x.countIQD)??0,usd:num(x.countUSD)??0,who:x.who||"",note:x.note||"",source:"phone"}); });
-    const list=fresh.filter(x=>!/count/i.test(x.type||"")).map(rowToEntry).filter(Boolean);
-    list.forEach(e=>seen.add(e.key.slice(6))); S.sheetSeen=[...seen];
-    if(nCounts) toast(`${nCounts} safe count(s) from phones added to the register.`);
-    S.lastSheetSync=new Date().toISOString(); const r=addEntries(list,"Phone log");
-    toast(r.added?`${r.added} new expense(s) from phones.`:"No new expenses from phones."); }
-  catch(e){ toast(e.message,8000); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent=label; } sheetInfo(); }
-}
-function phoneSetupLink(){
-  const st=S.settings; if(!st.phoneUrl||!st.sheetUrl||!st.sheetCode) return null;
-  const data={u:st.sheetUrl.trim(),c:st.sheetCode.trim(),p:st.defaultProject||"",cur:st.defaultCurrency||"IQD"};
-  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/=+$/,"");
-  return st.phoneUrl.trim().replace(/#.*$/,"")+"#setup="+b64;
-}
-
 /* ---------- signatures ---------- */
 function renderSigList(){
   const sigs=S.settings.signatures||{}; const names=Object.keys(sigs);
@@ -1061,8 +992,8 @@ function setupSigPad(){
 }
 function openSettings(section){
   const dlg=$("#settings"); renderCloud();
-  const shareLock=CL.on&&S.cloud.me.role!=="admin"; $$("[data-s]",dlg).forEach(el=>{ el.disabled=shareLock&&SHARED_SETTINGS.includes(el.dataset.s); }); $$("[data-s]",dlg).forEach(el=>el.value=S.settings[el.dataset.s]??""); renderSigList(); $("#phone-link-box").hidden=true; $("#sheet-status").textContent="";
-  dlg.showModal(); if(section==="sheet") setTimeout(()=>$('[data-s="sheetUrl"]').scrollIntoView({block:"center"}),50);
+  const shareLock=CL.on&&S.cloud.me.role!=="admin"; $$("[data-s]",dlg).forEach(el=>{ el.disabled=shareLock&&SHARED_SETTINGS.includes(el.dataset.s); }); $$("[data-s]",dlg).forEach(el=>el.value=S.settings[el.dataset.s]??""); renderSigList();
+  dlg.showModal(); if(section==="cloud") setTimeout(()=>$("#cloud-box").scrollIntoView({block:"center"}),50);
 }
 
 
@@ -1194,7 +1125,6 @@ function renderCloudHeader(){
   const locs=on?S.cloud.locations:[]; sel.hidden=!(on&&locs.length>1);
   if(on) sel.innerHTML=locs.map(l=>`<option value="${l.id}"${l.id===S.cloud.locId?" selected":""}>${esc(l.name)}</option>`).join("");
   $("#tab-people-btn").hidden=!(on&&["admin","bookkeeper"].includes(S.cloud.me.role));
-  $("#sheet-h").hidden=on; $$(".sheet-only").forEach(x=>x.hidden=on);
 }
 function switchLocation(id){ if(!CL.on||id===S.cloud.locId) return; collectLocal(); S.cloud.locId=id; loadLocation(id); save(); renderAll(); renderCloudHeader(); setSyncLabel(`${locName()} · synced ${stamp()}`); }
 /* settings → HOH cloud box */
@@ -1349,17 +1279,32 @@ function renderUpdate(){
     ${u.notes?`<button class="btn small" data-upd="notes">What’s new</button>`:""}<button class="btn small" data-upd="later">Later</button>
     ${canInstall?`<button class="btn small primary" data-upd="install">Update now</button>`:`<button class="btn small primary" data-upd="page">Download</button>`}</div>`;
 }
+let updWatch=null;
+function updStalled(msg){
+  clearTimeout(updWatch); window.__updProgress=null;
+  const b=$('[data-upd="install"]'); if(b){ b.disabled=false; b.textContent="Try again"; }
+  const slot=$("#update-slot .update"); if(slot&&!slot.querySelector('[data-upd="page"]')) slot.insertAdjacentHTML("beforeend",`<button class="btn small" data-upd="page">Download instead</button>`);
+  toast(msg+" You can also click Download instead and install it by hand.",12000);
+}
 async function installUpdate(){
   const b=$('[data-upd="install"]'); if(b){ b.disabled=true; b.textContent="Downloading…"; }
+  const arm=()=>{ clearTimeout(updWatch); updWatch=setTimeout(()=>updStalled("The update stopped responding."),120000); };
+  window.__updProgress=pct=>{ arm(); if(b) b.textContent=pct>=100?"Installing…":`Downloading… ${pct}%`; };
   try{ await writeNow(); if(CL.on){ collectLocal(); try{ await pushDirty(); }catch(e){} }
-    toast("Downloading the update. ZIPPY will close and reopen by itself.",15000);
-    await native({cmd:"update",url:updInfo.asset}); }
-  catch(e){ toast("The update didn’t install: "+(e.message||e)+". You can still download it from GitHub.",9000); if(b){ b.disabled=false; b.textContent="Update now"; } }
+    arm(); toast("Downloading the update. ZIPPY will close and reopen by itself.",8000);
+    await native({cmd:"update",url:updInfo.asset});
+    clearTimeout(updWatch); if(b) b.textContent="Restarting…"; }
+  catch(e){ updStalled("The update didn’t install: "+(e.message||e)+"."); }
 }
 
 /* ---------- import tab ---------- */
+function phonesInfo(){
+  const el=$("#phones-info"), b=$("#phones-btn"); if(!el) return;
+  if(CL.on){ el.textContent="Staff log expenses on the ZIPPY phone app; they arrive here automatically. Invite people from the People tab."; b.textContent="Sync now"; b.hidden=false; }
+  else { el.textContent="Phones connect through ZIPPY cloud. Set it up in Settings, then invite staff from the People tab."; b.textContent="Set up"; b.hidden=false; }
+}
 function renderImport(){
-  sheetInfo();
+  phonesInfo();
   if(!$("#paste-date").value) $("#paste-date").value=today();
   const by={}; S.entries.forEach(e=>{ by[e.source]=(by[e.source]||0)+1; });
   const keys=Object.keys(by);
@@ -2140,14 +2085,7 @@ function bind(){
     if(id==="cl-sync") syncNow({render:true});
     if(id==="cl-signout"&&confirm("Sign out of the HOH cloud on this computer? Your synced books stay safe in the cloud.")){ collectLocal(); S.cloud.sess=null; S.cloud.me=null; save(); renderCloud(); renderCloudHeader(); renderAll(); } });
   setupSigPad();
-  $("#sheet-setup").addEventListener("click",()=>openSettings("sheet"));
-  $("#sheet-sync").addEventListener("click",e=>syncFromSheet(e.currentTarget));
-  $("#ent-sync").addEventListener("click",e=>syncFromSheet(e.currentTarget));
-  $("#sheet-test").addEventListener("click",async()=>{ const el=$("#sheet-status"); el.textContent="Checking…";
-    try{ const d=await sheetCall({action:"ping"}); el.textContent=`Connected ✓ ${d.rows!=null?d.rows+" row(s) in the sheet":""}`; }catch(e){ el.textContent=e.message; } });
-  $("#phone-link-btn").addEventListener("click",()=>{ const l=phoneSetupLink(); if(!l){ $("#sheet-status").textContent="Fill in the sheet link, access code and phone app address first."; return; }
-    $("#phone-link").value=l; $("#phone-link-box").hidden=false; $("#phone-link").select(); });
-  $("#phone-link-copy").addEventListener("click",async()=>{ const i=$("#phone-link"); try{ await navigator.clipboard.writeText(i.value); toast("Link copied."); }catch(e){ i.select(); document.execCommand("copy"); toast("Link copied."); } });
+  $("#phones-btn").addEventListener("click",()=>{ if(CL.on) syncNow({render:true}); else openSettings("cloud"); });
   $("[data-close]",dlg).addEventListener("click",()=>dlg.close());
   $$("[data-s]",dlg).forEach(el=>el.addEventListener("input",()=>{ S.settings[el.dataset.s]=el.value; if(CL.on&&SHARED_SETTINGS.includes(el.dataset.s)) S.cloud.settingsTouched=true; save(); renderCounts(); }));
   dlg.addEventListener("close",()=>renderAll());

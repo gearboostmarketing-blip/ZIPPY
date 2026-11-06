@@ -224,8 +224,25 @@ sealed class MainForm : Form
                     using (var resp = await DownloadHttp.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                     {
                         resp.EnsureSuccessStatusCode();
+                        long total = resp.Content.Headers.ContentLength ?? 0, got = 0;
+                        int lastPct = -1, n;
+                        await using var src = await resp.Content.ReadAsStreamAsync();
                         await using var fs = File.Create(exe);
-                        await resp.Content.CopyToAsync(fs);
+                        var buffer = new byte[81920];
+                        while ((n = await src.ReadAsync(buffer.AsMemory(0, buffer.Length))) > 0)
+                        {
+                            await fs.WriteAsync(buffer.AsMemory(0, n));
+                            got += n;
+                            if (total > 0)
+                            {
+                                int pct = (int)(got * 100 / total);
+                                if (pct != lastPct && pct < 100)
+                                {
+                                    lastPct = pct;
+                                    _ = web.CoreWebView2.ExecuteScriptAsync($"window.__updProgress && window.__updProgress({pct})");
+                                }
+                            }
+                        }
                     }
                     Process.Start(new ProcessStartInfo(exe, "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS") { UseShellExecute = true });
                     result = true;

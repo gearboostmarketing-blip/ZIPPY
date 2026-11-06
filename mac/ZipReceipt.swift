@@ -12,16 +12,19 @@ struct BridgeError: LocalizedError {
 /// Installs an update: downloads the DMG, copies the new app next to the old one, and once this
 /// app has quit, a small script swaps them and reopens Zip Receipt. If anything fails, the old app stays.
 enum Updater {
-    static func install(from url: URL, done: @escaping (String?) -> Void) {
+    private static var watch: NSKeyValueObservation?
+
+    static func install(from url: URL, progress: @escaping (Int) -> Void, done: @escaping (String?) -> Void) {
         let target = Bundle.main.bundlePath
         if target.contains("/AppTranslocation/") || !FileManager.default.isWritableFile(atPath: (target as NSString).deletingLastPathComponent) {
             done("Move ZIPPY into your Applications folder first, then try again."); return
         }
-        var request = URLRequest(url: url, timeoutInterval: 600)
+        var request = URLRequest(url: url, timeoutInterval: 120)
         request.setValue("application/octet-stream", forHTTPHeaderField: "Accept")
-        URLSession.shared.downloadTask(with: request) { tmp, response, error in
+        let task = URLSession.shared.downloadTask(with: request) { tmp, response, error in
+            watch = nil
             guard let tmp = tmp, (response as? HTTPURLResponse)?.statusCode == 200 else {
-                done(error?.localizedDescription ?? "The download didn't finish."); return
+                done(error?.localizedDescription ?? "The download didn't finish (\((response as? HTTPURLResponse)?.statusCode ?? 0))."); return
             }
             let fm = FileManager.default
             let dir = fm.temporaryDirectory.appendingPathComponent("zr-update-\(UUID().uuidString)")
@@ -29,12 +32,19 @@ enum Updater {
                 try fm.createDirectory(at: dir, withIntermediateDirectories: true)
                 let dmg = dir.appendingPathComponent("Zip-Receipt.dmg")
                 try fm.moveItem(at: tmp, to: dmg)
+                progress(100)
                 let mount = dir.appendingPathComponent("mnt")
                 try fm.createDirectory(at: mount, withIntermediateDirectories: true)
                 let attach = Process()
                 attach.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
-                attach.arguments = ["attach", dmg.path, "-nobrowse", "-readonly", "-noautoopen", "-mountpoint", mount.path]
-                try attach.run(); attach.waitUntilExit()
+                attach.arguments = ["attach", dmg.path, "-nobrowse", "-readonly", "-noautoopen", "-noverify", "-quiet", "-mountpoint", mount.path]
+                attach.standardOutput = FileHandle.nullDevice
+                attach.standardError = FileHandle.nullDevice
+                try attach.run()
+                // Poll instead of waitUntilExit(), which can hang on a background thread
+                let deadline = Date().addingTimeInterval(90)
+                while attach.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.2) }
+                if attach.isRunning { attach.terminate(); done("Opening the downloaded update took too long."); return }
                 guard attach.terminationStatus == 0 else { done("Couldn't open the downloaded update."); return }
                 let apps = ((try? fm.contentsOfDirectory(atPath: mount.path)) ?? []).filter { $0.hasSuffix(".app") }
                 guard let appName = apps.first(where: { $0 == "ZIPPY.app" }) ?? apps.first(where: { $0 == "Zip Receipt.app" }) ?? apps.first else {
@@ -59,12 +69,20 @@ enum Updater {
                 let run = Process()
                 run.executableURL = URL(fileURLWithPath: "/bin/sh")
                 run.arguments = [sh.path]
-                try run.run()           // keeps running after Zip Receipt quits
+                run.standardOutput = FileHandle.nullDevice
+                run.standardError = FileHandle.nullDevice
+                try run.run()           // keeps running after ZIPPY quits, then swaps the app and reopens it
                 done(nil)
             } catch {
                 done(error.localizedDescription)
             }
-        }.resume()
+        }
+        var last = -1
+        watch = task.progress.observe(\.fractionCompleted) { prog, _ in
+            let pct = Int(prog.fractionCompleted * 100)
+            if pct != last && pct < 100 { last = pct; progress(pct) }
+        }
+        task.resume()
     }
 }
 
@@ -153,7 +171,10 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
             case "update":
                 // Download the new DMG from GitHub, swap the app in place, and reopen it
                 guard let str = body["url"] as? String, let url = URL(string: str), url.scheme == "https" else { throw BridgeError(message: "bad update link") }
-                Updater.install(from: url) { error in
+                let page = self.web
+                Updater.install(from: url, progress: { [weak page] pct in
+                    DispatchQueue.main.async { page?.evaluateJavaScript("window.__updProgress && window.__updProgress(\(pct))", completionHandler: nil) }
+                }) { error in
                     DispatchQueue.main.async {
                         if let error = error { replyHandler(nil, error) }
                         else { replyHandler(true, nil); DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { NSApp.terminate(nil) } }

@@ -56,6 +56,7 @@ In the browser version, use **Settings → Save backup file**. In the Mac app, u
 | `pdf` | `path`, `landscape` | the full path; prints the page's print layout straight to a PDF |
 | `print` | `landscape` | `true`; shows the system print dialog |
 | `reveal` | `path` (optional) | `true`; shows the file or folder in Finder / Explorer |
-| `http` | `url`, `body` (optional) | response text; fallback for reaching the Google Sheet |
+| `http` | `url`, `method`, `headers`, `body` (optional), `full` | response text (or status + text); fallback for reaching ZIPPY cloud |
+| `update` | `url` | downloads and installs the new version, reporting progress to `window.__updProgress` |
 
 Every `path` is relative to `Documents/Zip_Receipt` and must not contain `..`. Errors reject the Promise. A cancelled print rejects with a message containing "cancelled".

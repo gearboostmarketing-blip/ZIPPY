@@ -11,6 +11,11 @@ on:
     types: [published]   # publishing a release on github.com also builds and attaches the installers
   workflow_dispatch:
 
+# A release can start this twice (tag + published release): run them one after the other, never at once
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write   # needed only to attach the installer to a Release on tag pushes
 
@@ -26,7 +31,6 @@ jobs:
         run: |
           V="${GITHUB_REF_NAME#v}"
           sed -i.bak "s#const APP_VERSION = \"[^\"]*\"#const APP_VERSION = \"${V}\"#" index.html && rm -f index.html.bak
-          sed -i.bak "s#<Version>[^<]*</Version>#<Version>${V}.0</Version>#" windows/ZipReceipt.csproj && rm -f windows/ZipReceipt.csproj.bak
           sed -i.bak "s#^AppVersion=.*#AppVersion=${V}#" windows/installer.iss && rm -f windows/installer.iss.bak
 
       - name: Point the updater at this repository
@@ -37,10 +41,19 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
+      - name: Download packages (NuGet)
+        shell: bash
+        run: |
+          dotnet restore windows/ZipReceipt.csproj -r win-x64 && exit 0
+          echo "Restore failed, retrying with a detailed log..."
+          sleep 20
+          dotnet nuget locals all --clear
+          dotnet restore windows/ZipReceipt.csproj -r win-x64 -v detailed
+
       - name: Build app
         shell: pwsh
         run: >
-          dotnet publish windows/ZipReceipt.csproj -c Release -r win-x64 --self-contained true
+          dotnet publish windows/ZipReceipt.csproj -c Release -r win-x64 --self-contained true --no-restore
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -p:EnableCompressionInSingleFile=true -o windows/publish
 
