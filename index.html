@@ -1107,7 +1107,8 @@ function collectLocal(fresh){
 function loadLocation(loc){
   const c=S.cloud, recs=Object.values(c.recs||{}).filter(r=>r.location_id===loc&&!r.deleted);
   S.entries=recs.filter(r=>r.kind==="entry").map(r=>r.data); S.counts=recs.filter(r=>r.kind==="count").map(r=>r.data);
-  S.entries.forEach((e,i)=>{ if(!e.flags) e.flags=[]; if(e.order==null) e.order=i; if(!e.id) e.id=uid(); });
+  S.entries.forEach((e,i)=>{ if(!e.flags) e.flags=[]; if(e.order==null) e.order=i; if(!e.id) e.id=uid();
+    if(e.photoPath&&!e.noShopReceipt&&e.receipt&&!e.receiptSet) e.receipt=false; });   // the phone photo is the receipt
   const meta=c.recs&&c.recs["meta:"+loc]; S.monthRates=(meta&&meta.data.monthRates)||{}; S.opening=(meta&&meta.data.opening)||null; S.books={source:(meta&&meta.data.source)||""};
 }
 function withLocation(loc,fn){
@@ -1216,6 +1217,15 @@ async function cloudStart(link, mode){
     save(); await syncNow({render:true}); $("#settings").close(); renderCloudHeader();
     toast(`Signed in to ${S.cloud.org.name} · ${locName()}.`,5000);
   }catch(e){ toast(e.message,8000); }
+}
+async function photoURL(path){
+  const d=await sb("POST","/storage/v1/object/sign/receipts/"+path.split("/").map(encodeURIComponent).join("/"),{expiresIn:3600});
+  return S.cloud.url.replace(/\/$/,"")+"/storage/v1"+d.signedURL;
+}
+async function savePhoto(path, name){   // desktop app: download a phone photo into Documents/Zip_Receipt
+  const r=await fetch(await photoURL(path)); if(!r.ok) throw new Error("photo "+r.status);
+  const bytes=new Uint8Array(await r.arrayBuffer()); let bin=""; for(let i=0;i<bytes.length;i+=0x8000) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
+  await native({cmd:"write",path:name,text:btoa(bin),base64:true});
 }
 async function openPhoto(path){
   if(/^https?:/.test(path)){ window.open(path,"_blank"); return; }
@@ -1400,22 +1410,24 @@ async function exportZoho(group){
   }catch(e){ toast(e.message,8000); }
 }
 async function zohoReceipts(){
-  const m=ui.month, refs=zohoRefs(m), list=[...zohoLines("safe",m),...zohoLines("personal",m)].filter(e=>e.receipt);
-  const shop=[...zohoLines("safe",m),...zohoLines("personal",m)].length-list.length;
-  if(!list.length){ toast("No lines in this month need an official receipt."); return; }
+  const m=ui.month, refs=zohoRefs(m), all=[...zohoLines("safe",m),...zohoLines("personal",m)], list=all.filter(e=>e.receipt);
+  const photos=all.filter(e=>!e.receipt&&e.photoPath), shop=all.length-list.length-(NATIVE&&CL.on?photos.length:0);
+  if(!list.length&&!(NATIVE&&CL.on&&photos.length)){ toast("No lines in this month need an official receipt."); return; }
   if(!NATIVE){ // browser: one PDF, in reference order, each receipt labelled with its reference
     let html=""; list.sort((a,b)=>refs[a.id]<refs[b.id]?-1:1).forEach(e=>{ html+=`<div class="ppage" style="width:281mm;height:193mm"><div style="font:600 11pt system-ui;margin:0 0 6px">${esc(refs[e.id])}</div>${receiptHTML(e)}</div>`; });
     doPrint("receipts",html,"pdf",`Zoho receipts ${monthLabel(m)}`); return; }
-  toast(`Saving ${list.length} receipts…`,4000); let ok=0;
+  toast(`Saving ${list.length+(CL.on?photos.length:0)} receipts…`,4000); let ok=0;
+  const fname=e=>`${refs[e.id]} ${e.date} ${(e.desc||"").replace(/[\\/:*?"<>|#]+/g," ").slice(0,40).trim()}`;
+  if(CL.on) for(const e of photos){ try{ await savePhoto(e.photoPath,`${m}/Zoho receipts/${fname(e)}.jpg`); ok++; }catch(err){ console.error(err); } }
   for(const e of list){ const nm=`${refs[e.id]} ${e.date} ${(e.desc||"").replace(/[\\/:*?"<>|#]+/g," ").slice(0,40).trim()}`;
     if(await doPrint("receipts",`<div class="ppage" style="width:281mm;height:193mm">${receiptHTML(e)}</div>`,"pdf",`Zoho receipts/${nm}`,true)) ok++; }
   const path=`${m}/Zoho receipts`;
-  toast(`Saved ${ok} receipt${ok===1?"":"s"} in Documents/Zip_Receipt/${path}.${shop?` ${shop} line${shop===1?" has":"s have"} a shop receipt instead: attach those yourself.`:""}`,12000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})});
+  toast(`Saved ${ok} receipt${ok===1?"":"s"} (official receipts and phone photos) in Documents/Zip_Receipt/${path}.${shop?` ${shop} line${shop===1?" has":"s have"} a paper shop receipt: attach those yourself.`:""}`,12000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})});
 }
 function renderZoho(){
-  const el=$("#zh-info"); if(!el) return; const m=ui.month, s=zohoLines("safe",m), p=zohoLines("personal",m), off=s.length+p.length-[...s,...p].filter(e=>e.receipt).length;
+  const el=$("#zh-info"); if(!el) return; const m=ui.month, s=zohoLines("safe",m), p=zohoLines("personal",m), ph=[...s,...p].filter(e=>!e.receipt&&e.photoPath).length, off=s.length+p.length-[...s,...p].filter(e=>e.receipt).length-ph;
   $("#zh-title").textContent=`Zoho files · ${monthLabel(m)}`;
-  el.innerHTML=`Safe report: <b>${s.length}</b> expense${s.length===1?"":"s"}${zs().salaries?" (with salaries)":""} · Personal report: <b>${p.length}</b> reimbursable · Receipts: <b>${s.length+p.length-off}</b> official${off?`, ${off} with a shop receipt`:""}`;
+  el.innerHTML=`Safe report: <b>${s.length}</b> expense${s.length===1?"":"s"}${zs().salaries?" (with salaries)":""} · Personal report: <b>${p.length}</b> reimbursable · Receipts: <b>${s.length+p.length-off-ph}</b> official${ph?`, <b>${ph}</b> phone photo${ph===1?"":"s"}`:""}${off?`, ${off} paper shop receipt${off===1?"":"s"}`:""}`;
 }
 function openZoho(){
   const z=zs(), m=ui.month;
@@ -1505,7 +1517,7 @@ function renderEntries(){
       <td><input type="text" inputmode="decimal" class="amt" data-k="amount" value="${fmtN(e.amount,e.currency)}"></td>
       <td style="text-align:center"><input type="checkbox" data-k="receipt"${e.receipt?" checked":""}${e.type==="skip"?" disabled":""} aria-label="Make receipt"></td>
       <td>${personCell(e)}</td>
-      <td><div class="src" title="${esc(e.text)}">${e.photo?`<a class="photo-link" href="${esc(e.photo)}" target="_blank" rel="noopener">📷</a> `:""}${esc(e.text)}</div></td>
+      <td><div class="src" title="${esc(e.text)}">${e.photo?`<a class="photo-link" href="${esc(e.photo)}" target="_blank" rel="noopener">📷</a> `:""}${e.photoPath?`<a class="photo-link" href="#" data-photo="${esc(e.photoPath)}" title="Receipt photo from the phone">📷</a> `:""}${esc(e.text)}</div></td>
       <td style="white-space:nowrap">${e.flags.length?`<button class="btn small" data-act="ok" title="Looks right">OK</button> `:""}${findAmounts(e.text).length>1?`<button class="btn small" data-act="split">Split</button> `:""}<button class="btn small" data-act="dup" title="Copy this line">+</button> <button class="btn small danger" data-act="del" title="Delete">✕</button></td>
     </tr>`;
   });
@@ -1513,7 +1525,7 @@ function renderEntries(){
 }
 function entryChanged(e,k,el){
   if(k==="amount") e.amount=num(el.value)??0;
-  else if(k==="receipt") e.receipt=el.checked;
+  else if(k==="receipt"){ e.receipt=el.checked; e.receiptSet=true; }
   else if(k==="reimb"){ e.reimb=el.checked; if(el.checked&&!personOf(e)) e.personId=myPersonId(); }
   else if(k==="personId"){ e.personId=el.value||null; if(e.type==="advance") e.advMine=el.value===myPersonId(); }
   else e[k]=el.value;
