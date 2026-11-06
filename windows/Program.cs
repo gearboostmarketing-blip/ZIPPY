@@ -212,7 +212,7 @@ sealed class MainForm : Form
                     }
                     using var resp = await Http.SendAsync(msg);
                     var text = await resp.Content.ReadAsStringAsync();
-                    result = Bool(r, "full") ? new { status = (int)resp.StatusCode, text } : text;
+                    result = Bool(r, "full") ? (object)new { status = (int)resp.StatusCode, text } : text;
                     break;
                 }
                 case "update":

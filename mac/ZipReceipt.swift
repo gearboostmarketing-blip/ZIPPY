@@ -251,6 +251,15 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
         p.beginSheetModal(for: w) { r in completionHandler(r == .OK ? p.urls : nil) }
     }
 
+    // MARK: links that open a new window (photo links, Download) go to the default browser
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                 for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if let url = navigationAction.request.url, ["http", "https", "mailto"].contains(url.scheme ?? "") {
+            NSWorkspace.shared.open(url)
+        }
+        return nil
+    }
+
     // MARK: keep the app on index.html (a dropped file or a link must not replace it)
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {

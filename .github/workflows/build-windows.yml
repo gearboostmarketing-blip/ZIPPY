@@ -7,6 +7,8 @@ on:
     branches: [main]
     paths: ["index.html", "windows/**", ".github/workflows/build-windows.yml"]
     tags: ["v*"]
+  release:
+    types: [published]   # publishing a release on github.com also builds and attaches the installers
   workflow_dispatch:
 
 permissions:
