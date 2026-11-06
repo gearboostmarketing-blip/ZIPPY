@@ -420,6 +420,26 @@ body.native .web-only{display:none}
   <div class="df"><button class="btn" data-pp="cancel">Cancel</button><button class="btn primary" id="pp-save">Save</button></div>
 </dialog>
 
+<dialog id="zoho-dlg" style="width:min(720px,96vw)">
+  <div class="dh"><b>Zoho settings</b><button class="btn small" data-zd="close">Close</button></div>
+  <div class="db">
+    <label class="f">Your name in Zoho<input type="text" data-z="name"></label>
+    <label class="f">Your Zoho email<input type="email" data-z="email" placeholder="the email you sign in to Zoho with"></label>
+    <label class="f">Department<input type="text" data-z="dept"></label>
+    <label class="f">Policy<input type="text" data-z="policy"></label>
+    <label class="f">Paid Through (safe expenses)<input type="text" data-z="paidThrough"></label>
+    <label class="f">“Personal Expense (Iraq Use)” field<select data-z="personalCF"><option value="true">true</option><option value="false">false</option><option value="">leave empty</option></select></label>
+    <label class="f">Report name<input type="text" data-z="reportName"></label>
+    <label class="f">Business purpose<input type="text" data-z="purpose"></label>
+    <label class="full row" style="gap:8px;font-weight:600"><input type="checkbox" data-z="salaries"> Include salaries in the safe report</label>
+    <label class="f">Categories<select data-z="catMode"><option value="zippy">Use ZIPPY’s categories (matched below)</option><option value="blank">Leave empty — I’ll set them in Zoho</option><option value="placeholder">Same placeholder on every line</option></select></label>
+    <label class="f" id="zd-ph-row">Placeholder category<input type="text" data-z="catPlaceholder"></label>
+    <div class="full hint">In names and purposes, {name}, {Month} and {Year} are filled in for you. Zoho needs each category to match one of its own categories exactly; set the Zoho name for each ZIPPY category below.</div>
+    <div class="full" id="zd-cats"></div>
+  </div>
+  <div class="df"><button class="btn primary" data-zd="close">Done</button></div>
+</dialog>
+
 <dialog id="loc-dlg" style="width:min(420px,94vw)">
   <div class="dh"><b id="loc-title">Add location</b><button class="btn small" data-locd="cancel">Cancel</button></div>
   <div class="db" style="grid-template-columns:1fr">
@@ -454,6 +474,20 @@ body.native .web-only{display:none}
     <button class="btn" id="staff-xlsx">Export Excel (all staff)</button>
   </div>
   <div id="rep-staff"></div>
+  <h3 class="sec" style="margin-top:26px">Send to Zoho Expense</h3>
+  <div class="panel" id="zoho-panel">
+    <div class="row" style="align-items:flex-start;gap:16px">
+      <div style="flex:1;min-width:260px"><b id="zh-title">Zoho files</b>
+        <div class="hint" id="zh-info" style="margin-top:4px"></div></div>
+      <div class="row" style="flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn" id="zh-settings">Zoho settings</button>
+        <button class="btn" data-zoho="personal">Personal report CSV</button>
+        <button class="btn primary" data-zoho="safe">Safe report CSV</button>
+        <button class="btn" id="zh-receipts">Receipts for Zoho</button>
+      </div>
+    </div>
+    <p class="hint" style="margin:10px 0 0">In Zoho Expense: <b>Reports → ⋯ → Import Reports</b>, choose the CSV, check the columns line up, then <b>Import</b>. Zoho can’t import receipts, so attach each file from <b>Receipts for Zoho</b> to the expense with the same reference number (ZR-…).</p>
+  </div>
   <h3 class="sec" style="margin-top:26px">Copy for Telegram</h3>
   <div class="panel">
     <div class="row" style="align-items:flex-end">
@@ -1233,7 +1267,7 @@ function showLink(name,role,token){
   const link=makeLink({u:S.cloud.url,k:S.cloud.key,t:token,o:S.cloud.org.name,r:role});
   $("#link-title").textContent=`Invite link for ${name}`; $("#link-text").value=link;
   $("#link-intro").innerHTML=role==="staff"?`Send this to <b>${esc(name)}</b> privately, for example on WhatsApp. They open it on their phone and they’re in, no password needed.`:`Send this to <b>${esc(name)}</b> privately. They open ZIPPY, go to <b>Settings → HOH cloud</b>, paste the link, choose a password and click <b>Join with invite</b>. It also works on their phone.`;
-  $("#link-how").textContent=(S.settings.phoneUrl?"":"Tip: set the phone app address in Settings so links open the phone app directly. ")+"The link works once and expires in 30 days. If they lose their phone, make a new device link.";
+  $("#link-how").textContent=(S.settings.phoneUrl?"":"Tip: set the phone app address in Settings so links open the phone app directly. ")+"The link keeps working for 24 hours after it’s first opened (so they can open it again from the Home Screen app), and expires after 30 days if unused. If they lose their phone, make a new device link.";
   $("#link-dlg").showModal(); $("#link-text").select();
 }
 async function newLink(p){ try{ const t=await rpc("create_invite",{member:p.id}); showLink(p.name,p.role,t); }catch(e){ toast(e.message,7000); } }
@@ -1301,6 +1335,97 @@ async function installUpdate(){
     clearTimeout(updWatch); if(b) b.textContent="Restarting…"; }
   catch(e){ updStalled("The update didn’t install: "+(e.message||e)+"."); }
 }
+
+
+/* ---------- Zoho Expense export ---------- */
+const ZOHO_COLS=["ExpenseReport ID","Report Name","Start Date","End Date","Report Created By Name","Report Created By Email","Submitted Date","Last Submitted Date","Report Submitted By Name","Report Submitted By Email","Approved Date","Created Time","Report Number","Business Purpose","Report Status","Report Custom Status","Is Archived","Approver Name","Approver EmailID","Submitted To Name","Submitted To Email","Employee Number","Employee Name","Department Name","Department Code","Owner Role Name","Currency Code","Total","Total (RCY)","Reimbursable Total","Reimbursable Total (RCY)","Payrun Name","Project Name","Project Code","Customer Name","Trip Name","Trip Number","Trip Start Date","Trip End Date","Expense ID","Expense Date","Mileage Rate","Payment Mode","Entry Number","Mileage Unit","Mileage Type","Start Latitude","Start Longitude","End Latitude","End Longitude","Distance","Vehicle Name","Start Odometer Reading","End Odometer Reading","IsReimbursable","Is Personal","Is Billable","Exchange Rate","RCY Exchange Rate","Is Inclusive Tax","Expense Item Date","Item Order","Tax Name","Tax Code","Tax Percentage","Tax Type","Expense Amount","Adjustment","RCY Adjustment","AmountToBeReimbursed","RCYAmountToBeReimbursed (in Reimbursement Currency)","Expense Amount (in Reimbursement Currency)","Expense Tax Amount","Expense Tax Amount in BCY","Expense Tax Amount (in Reimbursement Currency)","Expense Total Amount","Expense Total Amount (in Reimbursement Currency)","Expense Total Amount (in Base Currency)","Expense SubTotal Amount","Expense SubTotal Amount (in Reimbursement Currency)","Expense Total Without Tax","Expense Total Without Tax (in Reimbursement Currency)","Expense SubTotal (BCY)","Actual Expense Claimed Amount","Actual Expense Claimed Amount (BCY)","Expense Currency Code","Reimbursement Currency Code","Reimbursement PaidThrough Account Code","Expense Location","Reference#","Expense Description","Expense Category","GL Code","Paid Through","Account Code","Merchant Name","Merchant Code","Expense Customer Name","Expense Project Name","Expense Project Code","Attendees","Expense Createdby Name","Expense Createdby Email","Expense Created By","Reimbursement Date","Fund (Project and Fund should be the same, but project selected above merely determines approver.)","Tag (optional)","Account Number","IFSC Code","Account Holder Name","Policy","Expense Type","Expense.CF.Personal Expense (Iraq Use)"];
+function zs(){ const z=S.settings.zoho=S.settings.zoho||{};
+  const d={name:S.settings.me||S.settings.payer||"",email:"",dept:"Iraq",policy:"Desert Flowers",paidThrough:"Restoration Safe",personalCF:"true",
+    reportName:"{name} {Month} {Year}",purpose:"{Month} Safe Report",salaries:true,cats:{},catMode:"zippy",catPlaceholder:"To categorise"};
+  Object.keys(d).forEach(k=>{ if(z[k]===undefined) z[k]=d[k]; }); return z; }
+const zFill=(t,m)=>{ const [y,mm]=m.split("-"); return String(t||"").replace(/\{name\}/g,zs().name).replace(/\{Month\}/g,MONTH_NAMES[+mm-1]).replace(/\{Year\}/g,y); };
+const zCatKey=e=>((e.rc&&e.rc.category)||"").trim()||(e.type==="salary"?"(salary)":"(no category)");
+function zCat(e){ const z=zs();
+  if(z.catMode==="blank") return "";
+  if(z.catMode==="placeholder") return z.catPlaceholder||"";
+  return z.cats[zCatKey(e)]||(((e.rc&&e.rc.category)||"").trim())||(e.type==="salary"?"Salaries":""); }
+function zohoLines(group, m){
+  m=m||ui.month; const z=zs();
+  return sorted(S.entries.filter(e=>inMonth(e.date,m)&&e.type!=="skip"&&(
+    group==="personal" ? (e.type==="expense"&&!!e.reimb) : (!e.reimb&&(e.type==="expense"||(z.salaries&&e.type==="salary"))))));
+}
+function zohoRefs(m){ const map={}; ["safe","personal"].forEach(g=>zohoLines(g,m).forEach((e,i)=>{ map[e.id]=`ZR-${m}-${g==="personal"?"P":""}${String(i+1).padStart(3,"0")}`; })); return map; }
+function zohoCSV(group, m){
+  m=m||ui.month; const z=zs(), list=zohoLines(group,m), refs=zohoRefs(m), rate=rateFor(m).rate, [y,mm]=m.split("-");
+  if(!list.length) return null;
+  if(list.some(e=>e.currency==="IQD")&&!rate) throw new Error(`Set ${monthLabel(m)}’s exchange rate on the Books tab first.`);
+  const usd=e=>e.currency==="USD"?Math.abs(e.amount):Math.abs(e.amount)/rate;
+  const f6=v=>(+v).toFixed(6), f3=v=>(+v).toFixed(3), f12=v=>(+v).toFixed(12);
+  const last=new Date(+y,+mm,0).getDate(), total=list.reduce((a,e)=>a+usd(e),0), reimb=list.filter(e=>e.reimb).reduce((a,e)=>a+usd(e),0);
+  const name=zFill(z.reportName,m)+(group==="personal"?" Personal":"");
+  const purpose=group==="personal"?`${MONTH_NAMES[+mm-1]} Personal Expenses`:zFill(z.purpose,m);
+  const rows=list.map(e=>{ const rc=e.rc||{}, amt=Math.abs(e.amount), u=usd(e), xr=e.currency==="USD"?1:1/rate, re=!!e.reimb, proj=rc.project||S.settings.defaultProject||"";
+    const r={"Report Name":name,"Start Date":`${m}-01`,"End Date":`${m}-${String(last).padStart(2,"0")}`,"Report Created By Name":z.name,"Report Created By Email":z.email,
+      "Business Purpose":purpose,"Is Archived":"false","Employee Name":z.name,"Department Name":z.dept,"Currency Code":"USD",
+      "Total":f3(total),"Total (RCY)":f3(total),"Reimbursable Total":f3(reimb),"Reimbursable Total (RCY)":f3(reimb),
+      "Expense Date":e.date,"Mileage Rate":"0.000000","Payment Mode":"Cash","Mileage Unit":"Kilometer","Mileage Type":"NonMileage","Distance":"0.000",
+      "IsReimbursable":String(re),"Is Personal":"false","Is Billable":"false","Exchange Rate":f12(xr),"RCY Exchange Rate":f12(xr),"Is Inclusive Tax":"false",
+      "Expense Item Date":e.date,"Item Order":"1","Tax Type":"ItemAmount","Expense Amount":f6(amt),"Adjustment":"0.000000","RCY Adjustment":"0.000000",
+      "AmountToBeReimbursed":f3(re?u:0),"RCYAmountToBeReimbursed (in Reimbursement Currency)":f3(re?u:0),"Expense Amount (in Reimbursement Currency)":f6(u),
+      "Expense Tax Amount":"0.000000","Expense Tax Amount in BCY":"0.000","Expense Tax Amount (in Reimbursement Currency)":"0.000000",
+      "Expense Total Amount":f6(amt),"Expense Total Amount (in Reimbursement Currency)":f6(u),"Expense Total Amount (in Base Currency)":f6(u),
+      "Expense SubTotal Amount":f6(amt),"Expense SubTotal Amount (in Reimbursement Currency)":f6(u),"Expense Total Without Tax":f6(amt),
+      "Expense Total Without Tax (in Reimbursement Currency)":f6(u),"Expense SubTotal (BCY)":f3(u),"Actual Expense Claimed Amount":f3(amt),"Actual Expense Claimed Amount (BCY)":f3(u),
+      "Expense Currency Code":e.currency,"Reimbursement Currency Code":"USD","Reference#":refs[e.id],"Expense Description":e.desc||"",
+      "Expense Category":zCat(e),
+      "Paid Through":re?"":z.paidThrough,"Merchant Name":rc.business||e.who||"","Expense Customer Name":proj,"Expense Project Name":proj,
+      "Expense Createdby Name":z.name,"Expense Createdby Email":z.email,"Expense Created By":z.name,
+      "Fund (Project and Fund should be the same, but project selected above merely determines approver.)":proj,"Policy":z.policy,
+      "Expense.CF.Personal Expense (Iraq Use)":z.personalCF};
+    return ZOHO_COLS.map(c=>r[c]===undefined?"":r[c]); });
+  const q=v=>/[",\n\r]/.test(v)?`"${String(v).replace(/"/g,'""')}"`:v;
+  return { name, count:list.length, total, missing:z.catMode==="zippy"?list.filter(e=>!zCat(e)).length:0,
+    csv:[ZOHO_COLS,...rows].map(r=>r.map(q).join(",")).join("\n")+"\n" };
+}
+async function saveText(text, name, folder, mime){
+  if(NATIVE){ const path=folder?`${folder}/${name}`:name;
+    try{ await native({cmd:"write",path,text}); toast(`Saved ${name} in Documents/Zip_Receipt`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); return true; }
+    catch(e){ toast("Couldn’t save: "+(e.message||e),8000); return false; } }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:mime||"text/csv"})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); return true;
+}
+async function exportZoho(group){
+  try{ const r=zohoCSV(group); if(!r){ toast(`No ${group==="personal"?"reimbursable (personal)":"safe"} expenses in ${monthLabel(ui.month)}.`); return; }
+    if(r.missing&&!confirm(`${r.missing} line(s) have no category, and Zoho needs one on every expense. Export anyway? (Set categories in Zoho settings or on each receipt.)`)) return;
+    await saveText(r.csv,`Zoho ${group==="personal"?"Personal":"Safe"} report ${monthLabel(ui.month)}.csv`,ui.month);
+  }catch(e){ toast(e.message,8000); }
+}
+async function zohoReceipts(){
+  const m=ui.month, refs=zohoRefs(m), list=[...zohoLines("safe",m),...zohoLines("personal",m)].filter(e=>e.receipt);
+  const shop=[...zohoLines("safe",m),...zohoLines("personal",m)].length-list.length;
+  if(!list.length){ toast("No lines in this month need an official receipt."); return; }
+  if(!NATIVE){ // browser: one PDF, in reference order, each receipt labelled with its reference
+    let html=""; list.sort((a,b)=>refs[a.id]<refs[b.id]?-1:1).forEach(e=>{ html+=`<div class="ppage" style="width:281mm;height:193mm"><div style="font:600 11pt system-ui;margin:0 0 6px">${esc(refs[e.id])}</div>${receiptHTML(e)}</div>`; });
+    doPrint("receipts",html,"pdf",`Zoho receipts ${monthLabel(m)}`); return; }
+  toast(`Saving ${list.length} receipts…`,4000); let ok=0;
+  for(const e of list){ const nm=`${refs[e.id]} ${e.date} ${(e.desc||"").replace(/[\\/:*?"<>|#]+/g," ").slice(0,40).trim()}`;
+    if(await doPrint("receipts",`<div class="ppage" style="width:281mm;height:193mm">${receiptHTML(e)}</div>`,"pdf",`Zoho receipts/${nm}`,true)) ok++; }
+  const path=`${m}/Zoho receipts`;
+  toast(`Saved ${ok} receipt${ok===1?"":"s"} in Documents/Zip_Receipt/${path}.${shop?` ${shop} line${shop===1?" has":"s have"} a shop receipt instead: attach those yourself.`:""}`,12000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})});
+}
+function renderZoho(){
+  const el=$("#zh-info"); if(!el) return; const m=ui.month, s=zohoLines("safe",m), p=zohoLines("personal",m), off=s.length+p.length-[...s,...p].filter(e=>e.receipt).length;
+  $("#zh-title").textContent=`Zoho files · ${monthLabel(m)}`;
+  el.innerHTML=`Safe report: <b>${s.length}</b> expense${s.length===1?"":"s"}${zs().salaries?" (with salaries)":""} · Personal report: <b>${p.length}</b> reimbursable · Receipts: <b>${s.length+p.length-off}</b> official${off?`, ${off} with a shop receipt`:""}`;
+}
+function openZoho(){
+  const z=zs(), m=ui.month;
+  $$("[data-z]").forEach(i=>{ const k=i.dataset.z; if(i.type==="checkbox") i.checked=!!z[k]; else i.value=z[k]??""; });
+  const keys=[...new Set(S.entries.filter(e=>e.type==="expense"||e.type==="salary").map(zCatKey))].sort();
+  const known=[...new Set(Object.values(z.cats).filter(Boolean))];
+  $("#zd-cats").innerHTML=keys.length?`<table class="tbl" style="width:100%"><thead><tr><th>ZIPPY category</th><th>Zoho category</th></tr></thead><tbody>${keys.map(k=>`<tr><td>${esc(k)}</td><td><input type="text" data-zc="${esc(k)}" value="${esc(z.cats[k]||"")}" placeholder="${esc(k.startsWith("(")?(k==="(salary)"?"Salaries":"choose a Zoho category"):k)}" list="dl-zcat" style="width:100%"></td></tr>`).join("")}</tbody></table><datalist id="dl-zcat">${known.map(c=>`<option value="${esc(c)}">`).join("")}</datalist>`:`<p class="hint">No categories yet.</p>`;
+  zCatModeUI(); $("#zoho-dlg").showModal();
+}
+function zCatModeUI(){ const mode=zs().catMode; $("#zd-ph-row").hidden=mode!=="placeholder"; $("#zd-cats").hidden=mode!=="zippy"; }
 
 /* ---------- import tab ---------- */
 function phonesInfo(){
@@ -1732,6 +1857,7 @@ function registerRows(){
   const {first}=engine(); return dataMonths().filter(m=>m>=first).map(m=>{ const u=monthBooks(m); return {m,u}; });
 }
 function renderReports(){
+  renderZoho();
   const m=ui.month, L=monthLabel(m); $("#rep-title").textContent="Reports · "+L;
   const nR=receiptEntries("safe").length, nP=receiptEntries("personal").length, nL=S.entries.filter(e=>inMonth(e.date,m)).length;
   const card=(t,d,btns,cls="")=>`<div class="rep-card ${cls}"><b>${t}</b><span class="hint">${d}</span><div class="row">${btns}</div></div>`;
@@ -2071,6 +2197,14 @@ function bind(){
   $("#pp-add").addEventListener("click",()=>openPerson(null));
   $("#pp-save").addEventListener("click",savePerson);
   $("#loc-save").addEventListener("click",saveLocation);
+  $$("[data-zoho]").forEach(b=>b.addEventListener("click",()=>exportZoho(b.dataset.zoho)));
+  $("#zh-receipts").addEventListener("click",zohoReceipts);
+  $("#zh-settings").addEventListener("click",openZoho);
+  $("#zoho-dlg").addEventListener("input",e=>{ const z=zs(), t=e.target;
+    if(t.dataset.z){ z[t.dataset.z]=t.type==="checkbox"?t.checked:t.value; save(); }
+    if(t.dataset.zc!==undefined){ z.cats[t.dataset.zc]=t.value.trim(); save(); } });
+  $("#zoho-dlg").addEventListener("change",e=>{ if(e.target.dataset.z){ const z=zs(); z[e.target.dataset.z]=e.target.type==="checkbox"?e.target.checked:e.target.value; save(); zCatModeUI(); } });
+  $$("[data-zd]").forEach(b=>b.addEventListener("click",()=>{ $("#zoho-dlg").close(); renderZoho(); }));
   $("#loc-name").addEventListener("keydown",e=>{ if(e.key==="Enter") saveLocation(); });
   $$("[data-locd]").forEach(b=>b.addEventListener("click",()=>$("#loc-dlg").close()));
   $$("[data-pp]").forEach(b=>b.addEventListener("click",()=>$("#pp-dlg").close()));

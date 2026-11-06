@@ -232,7 +232,9 @@ create or replace function public.accept_invite(tok text)
   returns json language plpgsql security definer set search_path = public as
 $$ declare i invites%rowtype; t members%rowtype; begin
   if auth.uid() is null then raise exception 'Sign in first.'; end if;
-  select * into i from invites where token = tok and used_at is null and expires_at > now();
+  -- a link keeps working for 24 hours after it is first opened (so a phone can join again from its Home Screen app)
+  select * into i from invites where token = tok and expires_at > now()
+    and (used_at is null or used_at > now() - interval '24 hours');
   if not found then raise exception 'This invite link has expired or was already used. Ask for a new one.'; end if;
   select * into t from members where id = i.member_id;
   if not t.active then raise exception 'This person has been switched off.'; end if;
@@ -240,7 +242,7 @@ $$ declare i invites%rowtype; t members%rowtype; begin
     raise exception 'This login already belongs to someone else.';
   end if;
   update members set user_id = auth.uid() where id = t.id;
-  update invites set used_at = now() where token = tok;
+  update invites set used_at = coalesce(used_at, now()) where token = tok;
   return json_build_object('member_id', t.id, 'org_id', t.org_id, 'role', t.role, 'name', t.name);
 end $$;
 
