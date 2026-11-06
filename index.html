@@ -929,18 +929,7 @@ function renderBooks(){
   if(!S.entries.length){ $("#bk-cards").innerHTML=`<div class="panel empty">Import a log to see the books.</div>`; $("#bk-detail").innerHTML=""; return; }
   const {list,res}=booksData();
   const used=CURS.filter(c=>list.some(e=>e.currency===c)||num(b["open"+c]));
-  $("#bk-cards").innerHTML=used.map(c=>{ const r=res[c];
-    const diff=r.diff==null?`<span class="hint">enter counted cash</span>`:(Math.abs(r.diff)<(c==="USD"?0.01:1)?`<span class="diff-ok">Balanced</span>`:`<span class="diff-bad">${r.diff>0?"+":""}${fmtN(r.diff,c)}</span>`);
-    return `<div class="cur-card"><h3><span>${c}</span><span class="hint">${list.filter(e=>e.currency===c).length} lines</span></h3><table>
-      <tr><td>Opening balance</td><td class="num">${fmtN(r.open,c)}</td></tr>
-      <tr><td class="in">Money in</td><td class="num in">+${fmtN(r.in,c)}</td></tr>
-      <tr><td class="out">Money out</td><td class="num out">−${fmtN(r.totalOut,c)}</td></tr>
-      <tr class="sub"><td>Expenses</td><td class="num">${fmtN(r.out.expense,c)}</td></tr>
-      <tr class="sub"><td>Advances</td><td class="num">${fmtN(r.out.advance,c)}</td></tr>
-      <tr class="sub"><td>Salaries</td><td class="num">${fmtN(r.out.salary,c)}</td></tr>
-      <tr class="total"><td>Ending balance (should have)</td><td class="num">${fmtN(r.expected,c)}</td></tr>
-      <tr><td>Counted</td><td class="num">${r.actual==null?"–":fmtN(r.actual,c)}</td></tr>
-      <tr><td>Difference</td><td class="num">${diff}</td></tr></table></div>`; }).join("");
+  $("#bk-cards").innerHTML="";
   const u=usdTotals(res,used);
   const usdCard = !u ? `<div class="cur-card usd-card"><h3><span>Total in USD</span></h3><p class="hint" style="margin:0">Enter the exchange rate (IQD per $1) above to see money in, money out and the ending balance in dollars.</p></div>` :
     `<div class="cur-card usd-card"><h3><span>Total in USD</span><span class="hint">IQD converted at ${fmtN(u.rate,"USD")} IQD = $1</span></h3>
