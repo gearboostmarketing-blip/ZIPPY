@@ -82,6 +82,13 @@ table.data select{padding:5px 4px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 /* books */
+.rate-box input{border-color:var(--accent);border-width:2px;font-weight:700}
+.usd-card{grid-column:1/-1;border:2px solid var(--accent)}
+.usd-card .big{display:flex;flex-wrap:wrap;gap:28px;margin:4px 0 14px}
+.usd-card .big div{display:flex;flex-direction:column}
+.usd-card .big b{font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.usd-card .big span{font-size:12.5px;color:var(--muted);font-weight:600}
+.usd-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 36px}
 .books-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:18px}
 .cur-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
@@ -117,7 +124,13 @@ h3.sec{font-size:15px;margin:22px 0 8px}
 dialog{border:1px solid var(--line);border-radius:10px;padding:0;background:var(--panel);color:var(--ink);width:min(720px,94vw)}
 dialog::backdrop{background:rgba(10,15,25,.45)}
 dialog .dh{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-dialog .db{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+dialog .db{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-height:70vh;overflow:auto}
+.set-h{margin:14px 0 0;font-size:14px;border-top:1px solid var(--line);padding-top:14px}
+#sig-pad{width:100%;height:150px;background:#fff;border:1px dashed var(--muted);border-radius:6px;touch-action:none;cursor:crosshair;margin:8px 0}
+.sig-item{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:6px;padding:6px 10px;margin:0 8px 8px 0;background:var(--soft)}
+.sig-item img{height:36px;background:#fff;border-radius:3px}
+.phonecard{border-left:4px solid var(--accent)}
+.photo-link{font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}
 dialog .db .full{grid-column:1/-1}
 dialog .df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 body.native .web-only{display:none}
@@ -159,7 +172,9 @@ body.native .web-only{display:none}
 .report table{border-collapse:collapse;width:100%;margin-bottom:12px}
 .report th,.report td{border:1px solid #999;padding:3px 6px;font-size:9.5pt}
 .report th{background:#e9edf2;text-align:left}
-.report td.n,.report th.n{text-align:right;font-variant-numeric:tabular-nums}
+.report td.n,.report th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.report tbody td:first-child{white-space:nowrap}
+.report td.n,.report td:first-child{white-space:nowrap}
 .report tr.t td{font-weight:700;background:#f4f6f8}
 .report h2{font-size:12pt;margin:14px 0 6px}
 .report .sig{display:flex;gap:60px;margin-top:30px}
@@ -208,6 +223,10 @@ body.native .web-only{display:none}
       </div>
     </div>
   </div>
+  <div class="panel phonecard" style="margin-top:18px">
+    <div class="row"><div style="flex:1"><b>Phone log (Google Sheet)</b><div class="hint" id="sheet-sync-info">Expenses logged on phones arrive here.</div></div>
+      <button class="btn" id="sheet-setup">Set up</button><button class="btn primary" id="sheet-sync">Sync phones</button></div>
+  </div>
   <div class="panel" style="margin-top:18px">
     <b>How it works</b>
     <p class="hint" style="margin:6px 0 0">1. Import the log. 2. Check the <b>Log</b> tab: fix anything highlighted yellow, set each line's type (expense, advance, salary, money in, safe count, or skip) and currency. 3. <b>Books</b> gives you money in / money out per currency to compare with your records. 4. <b>Receipts</b> builds one official receipt per expense; fill in the missing details, mark each reviewed, then print or save as PDF.</p>
@@ -228,6 +247,7 @@ body.native .web-only{display:none}
     <input type="text" id="ent-search" placeholder="Search…" style="width:200px">
     <select id="ent-source"></select>
     <div class="spacer"></div>
+    <button class="btn" id="ent-sync" hidden>Sync phones</button>
     <button class="btn" id="ent-add">Add line</button>
   </div>
   <div class="tablewrap"><table class="data" id="ent-table"></table></div>
@@ -240,6 +260,7 @@ body.native .web-only{display:none}
     <div class="row"><span class="hint web-only">Print → choose “Save as PDF” for a file</span><button class="btn native-only" id="print-report-dlg" hidden>Print…</button><button class="btn primary" id="print-report">Print / PDF report</button></div>
   </div>
   <div class="panel books-controls">
+    <label class="f rate-box">Exchange rate (IQD per $1)<input type="text" inputmode="decimal" id="bk-rate" placeholder="e.g. 1,450"></label>
     <label class="f">From<input type="date" id="bk-from"></label>
     <label class="f">To<input type="date" id="bk-to"></label>
     <label class="f">Source<select id="bk-source"></select></label>
@@ -308,8 +329,32 @@ body.native .web-only{display:none}
     <label class="f">Default payer (if chat has no name)<input type="text" data-s="payer"></label>
     <label class="f">Verified by (second signature)<input type="text" data-s="verifier"></label>
     <label class="f">Default project<input type="text" data-s="defaultProject"></label>
-    <label class="f">IQD per 1 USD (optional, for a combined total)<input type="number" data-s="rate" step="any"></label>
-    <div class="full hint">Data is saved automatically in this browser. Use a backup file to move work to another computer or keep a record of each month.</div>
+    <label class="f">Exchange rate: IQD per $1 (also on the Books tab)<input type="text" inputmode="decimal" data-s="rate"></label>
+    <div class="full hint">Data is saved automatically. Use a backup file to move work to another computer or keep a record of each month.</div>
+
+    <h3 class="full set-h">Signatures</h3>
+    <label class="full row" style="gap:8px;font-weight:600"><input type="checkbox" id="sig-on"> Print saved signatures on receipts</label>
+    <div class="full" id="sig-list"></div>
+    <div class="full sig-new">
+      <div class="row" style="align-items:flex-end">
+        <label class="f" style="flex:1">Name (exactly as it appears on receipts)<input type="text" id="sig-name" placeholder="e.g. Jared Clugston"></label>
+        <button class="btn small" id="sig-clear">Clear</button>
+        <button class="btn small" id="sig-upload-btn">Upload photo</button>
+        <input type="file" id="sig-upload" accept="image/*" hidden>
+      </div>
+      <canvas id="sig-pad" width="900" height="260" aria-label="Sign here"></canvas>
+      <div class="row"><span class="hint">Sign above with a trackpad, mouse or finger, or upload a photo of a signature on white paper.</span><div class="spacer"></div><button class="btn primary small" id="sig-save">Save signature</button></div>
+    </div>
+
+    <h3 class="full set-h">Phones &amp; Google Sheet</h3>
+    <label class="f full">Google Sheet link (the web app address ending in /exec)<input type="text" data-s="sheetUrl" placeholder="https://script.google.com/macros/s/…/exec"></label>
+    <label class="f">Access code<input type="text" data-s="sheetCode" placeholder="from the sheet’s setup"></label>
+    <label class="f">Phone app address<input type="text" data-s="phoneUrl" placeholder="https://…github.io/zip-receipt-phone/"></label>
+    <div class="full row"><button class="btn small" id="sheet-test">Test connection</button><button class="btn small" id="phone-link-btn">Make phone setup link</button><span class="hint" id="sheet-status"></span></div>
+    <div class="full" id="phone-link-box" hidden>
+      <div class="row"><input type="text" id="phone-link" readonly style="flex:1"><button class="btn small primary" id="phone-link-copy">Copy</button></div>
+      <p class="hint" style="margin:4px 0 0">Send this link privately (it contains the access code). Opening it on a phone sets up the phone app in one tap.</p>
+    </div>
   </div>
   <div class="df">
     <button class="btn" id="backup-save">Save backup file</button>
@@ -335,7 +380,8 @@ const CURS = ["IQD","USD"];
 const DEFAULT_SETTINGS = {
   orgName:"Hands of Hope organization for help, (HOH)", orgEmail:"Email: hohkurdistan@gmail.com",
   receiptTitle:"Org Receipt", statement:"I, {payer}, paid for these items at the specified price.",
-  payer:"", verifier:"", defaultCurrency:"IQD", defaultProject:"", rate:""
+  payer:"", verifier:"", defaultCurrency:"IQD", defaultProject:"", rate:"",
+  useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:""
 };
 
 let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{} };
@@ -436,7 +482,7 @@ function parseSegment(text, defaultCur){
   else if(usd&&iqd){ cur=defaultCur; flags.push("both currencies mentioned"); }
   else { cur = (a.value%1!==0) ? "USD" : defaultCur; if(a.value<1000 && cur==="IQD") flags.push("small amount – dollars?"); if(a.value%1!==0) flags.push("currency guessed"); }
   let desc=(text.slice(0,a.start)+" "+text.slice(a.end));
-  desc=desc.replace(/\b(usd|iqd|dinars?|dollars?)\b/gi," ").replace(/(^|\s)din\b/gi," ").replace(/\$/g," ")
+  desc=desc.replace(/\b(usd|iqd|dinars?|dollars?)\b/gi," ").replace(/[(\[{]\s*[-–,.:]?\s*[)\]}]/g," ").replace(/(^|\s)din\b/gi," ").replace(/\$/g," ")
            .replace(/\s+/g," ").replace(/^[\s\-–,.:;]+|[\s\-–,.:;]+$/g,"").trim();
   if(!desc) desc=text.trim();
   desc=desc.charAt(0).toUpperCase()+desc.slice(1);
@@ -676,8 +722,98 @@ function sheetDialog(fileName, sheets){
   });
 }
 
+
+/* ---------- Google Sheet (phone log) ---------- */
+async function sheetCall(params, body){
+  const st=S.settings; if(!st.sheetUrl) throw new Error("Add the Google Sheet link in Settings first.");
+  const url=st.sheetUrl.trim()+(st.sheetUrl.includes("?")?"&":"?")+new URLSearchParams({...params, code:(st.sheetCode||"").trim()});
+  let text;
+  try{ const r=await fetch(url, body?{method:"POST",body:JSON.stringify(body)}:{}); text=await r.text(); }
+  catch(err){
+    if(NATIVE){ try{ text=await native({cmd:"http",url,body:body?JSON.stringify(body):null}); }catch(e2){ throw new Error("Couldn’t reach Google ("+(e2.message||e2)+")."); } }
+    else throw new Error("Couldn’t reach Google. Check the internet connection and the sheet link.");
+  }
+  let d; try{ d=JSON.parse(text); }catch(e){ throw new Error("That link didn’t answer like the Zip Receipt sheet script. It should end in /exec."); }
+  if(!d.ok) throw new Error(d.error||"The sheet returned an error.");
+  return d;
+}
+function rowToEntry(x){
+  const amount=num(x.amount); if(!x.id||!amount) return null;
+  const e=makeEntry({key:"sheet:"+x.id, source:"Phone log", date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")?x.date:today(), time:String(x.loggedAt||"").slice(11,16),
+    who:x.who||"", text:[x.description,x.business,x.note].filter(Boolean).join(" · "), desc:x.description||"(no description)",
+    amount:Math.abs(amount), currency:String(x.currency).toUpperCase()==="USD"?"USD":"IQD", type:"expense", receipt:true, flags:[],
+    photo:x.photoUrl||"", noShopReceipt:String(x.hasReceipt).toLowerCase()==="no"});
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")) e.flags.push("no date from phone");
+  const rc=getRc(e); ["business","category","project"].forEach(k=>{ if(x[k]) rc[k]=String(x[k]); });
+  if(x.note) rc.note=String(x.note);
+  return e;
+}
+function sheetInfo(){
+  const st=S.settings, el=$("#sheet-sync-info"); if(!el) return;
+  $("#ent-sync").hidden=!st.sheetUrl;
+  el.textContent = !st.sheetUrl ? "Not set up yet. Phones log expenses into a Google Sheet, and this button pulls them in."
+    : S.lastSheetSync ? `Last synced ${new Date(S.lastSheetSync).toLocaleString([], {dateStyle:"medium",timeStyle:"short"})}.` : "Ready. Click Sync phones to pull in expenses logged on phones.";
+}
+async function syncFromSheet(btn){
+  if(!S.settings.sheetUrl){ openSettings("sheet"); return; }
+  const label=btn?.textContent; if(btn){ btn.disabled=true; btn.textContent="Syncing…"; }
+  try{ const d=await sheetCall({action:"list"}); const list=(d.rows||[]).map(rowToEntry).filter(Boolean);
+    S.lastSheetSync=new Date().toISOString(); const r=addEntries(list,"Phone log");
+    toast(r.added?`${r.added} new expense(s) from phones.`:"No new expenses from phones."); }
+  catch(e){ toast(e.message,8000); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent=label; } sheetInfo(); }
+}
+function phoneSetupLink(){
+  const st=S.settings; if(!st.phoneUrl||!st.sheetUrl||!st.sheetCode) return null;
+  const data={u:st.sheetUrl.trim(),c:st.sheetCode.trim(),p:st.defaultProject||"",cur:st.defaultCurrency||"IQD"};
+  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/=+$/,"");
+  return st.phoneUrl.trim().replace(/#.*$/,"")+"#setup="+b64;
+}
+
+/* ---------- signatures ---------- */
+function renderSigList(){
+  const sigs=S.settings.signatures||{}; const names=Object.keys(sigs);
+  $("#sig-on").checked=S.settings.useSignatures!==false;
+  $("#sig-list").innerHTML = names.length ? names.map(n=>`<span class="sig-item"><img src="${sigs[n]}" alt=""><b>${esc(n)}</b><button class="btn small danger" data-sig-del="${esc(n)}">Remove</button></span>`).join("")
+    : `<span class="hint">No signatures saved yet. A receipt shows a signature when its “Paid by” or “Verified by” name matches one saved here.</span>`;
+}
+function setupSigPad(){
+  const c=$("#sig-pad"), ctx=c.getContext("2d"); let drawing=false, dirty=false, last=null;
+  const pos=e=>{ const r=c.getBoundingClientRect(); return {x:(e.clientX-r.left)*c.width/r.width, y:(e.clientY-r.top)*c.height/r.height}; };
+  const clear=()=>{ ctx.clearRect(0,0,c.width,c.height); dirty=false; };
+  c.addEventListener("pointerdown",e=>{ drawing=true; last=pos(e); c.setPointerCapture(e.pointerId); });
+  c.addEventListener("pointermove",e=>{ if(!drawing) return; const p=pos(e); ctx.strokeStyle="#0b1f4a"; ctx.lineWidth=4.5; ctx.lineCap="round"; ctx.lineJoin="round";
+    ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; dirty=true; });
+  ["pointerup","pointercancel"].forEach(ev=>c.addEventListener(ev,()=>{ drawing=false; }));
+  $("#sig-clear").addEventListener("click",clear);
+  $("#sig-upload-btn").addEventListener("click",()=>$("#sig-upload").click());
+  $("#sig-upload").addEventListener("change",async ev=>{ const f=ev.target.files[0]; if(!f) return; const img=new Image(); img.src=URL.createObjectURL(f); await img.decode();
+    clear(); const s=Math.min(c.width/img.width,c.height/img.height); const w=img.width*s, h=img.height*s; ctx.drawImage(img,(c.width-w)/2,(c.height-h)/2,w,h);
+    // make the paper transparent so only the ink prints
+    const d=ctx.getImageData(0,0,c.width,c.height), p=d.data; for(let i=0;i<p.length;i+=4){ const l=0.3*p[i]+0.59*p[i+1]+0.11*p[i+2]; if(l>165) p[i+3]=0; else { p[i]=p[i+1]=Math.min(p[i],60); p[i+2]=Math.min(p[i+2],90); } }
+    ctx.putImageData(d,0,0); dirty=true; ev.target.value=""; });
+  $("#sig-save").addEventListener("click",()=>{
+    const name=$("#sig-name").value.trim(); if(!name){ toast("Type the person’s name first."); $("#sig-name").focus(); return; }
+    if(!dirty){ toast("Sign in the box first, or upload a photo."); return; }
+    // trim empty space around the ink
+    const d=ctx.getImageData(0,0,c.width,c.height).data; let x0=c.width,y0=c.height,x1=0,y1=0;
+    for(let y=0;y<c.height;y++) for(let x=0;x<c.width;x++){ if(d[(y*c.width+x)*4+3]>20){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } }
+    if(x1<=x0){ toast("The signature looks empty."); return; }
+    const pad=8, w=x1-x0+pad*2, h=y1-y0+pad*2, out=document.createElement("canvas"); out.width=w; out.height=h;
+    out.getContext("2d").drawImage(c,x0-pad,y0-pad,w,h,0,0,w,h);
+    S.settings.signatures={...(S.settings.signatures||{}),[name]:out.toDataURL("image/png")}; save(); clear(); $("#sig-name").value=""; renderSigList(); toast(`Signature saved for ${name}.`);
+  });
+  $("#sig-list").addEventListener("click",e=>{ const n=e.target.dataset.sigDel; if(n==null) return; if(!confirm(`Remove the signature for ${n}?`)) return; const s2={...S.settings.signatures}; delete s2[n]; S.settings.signatures=s2; save(); renderSigList(); });
+  $("#sig-on").addEventListener("change",e=>{ S.settings.useSignatures=e.target.checked; save(); });
+}
+function openSettings(section){
+  const dlg=$("#settings"); $$("[data-s]",dlg).forEach(el=>el.value=S.settings[el.dataset.s]??""); renderSigList(); $("#phone-link-box").hidden=true; $("#sheet-status").textContent="";
+  dlg.showModal(); if(section==="sheet") setTimeout(()=>$('[data-s="sheetUrl"]').scrollIntoView({block:"center"}),50);
+}
+
 /* ---------- import tab ---------- */
 function renderImport(){
+  sheetInfo();
   if(!$("#paste-date").value) $("#paste-date").value=today();
   const by={}; S.entries.forEach(e=>{ by[e.source]=(by[e.source]||0)+1; });
   const keys=Object.keys(by);
@@ -729,7 +865,7 @@ function renderEntries(){
       <td><select data-k="currency">${curOptions(e.currency)}</select></td>
       <td><input type="text" inputmode="decimal" class="amt" data-k="amount" value="${fmtN(e.amount,e.currency)}"></td>
       <td style="text-align:center"><input type="checkbox" data-k="receipt"${e.receipt?" checked":""}${e.type==="skip"?" disabled":""} aria-label="Make receipt"></td>
-      <td><div class="src" title="${esc(e.text)}">${esc(e.text)}</div></td>
+      <td><div class="src" title="${esc(e.text)}">${e.photo?`<a class="photo-link" href="${esc(e.photo)}" target="_blank" rel="noopener">📷</a> `:""}${esc(e.text)}</div></td>
       <td style="white-space:nowrap">${e.flags.length?`<button class="btn small" data-act="ok" title="Looks right">OK</button> `:""}${findAmounts(e.text).length>1?`<button class="btn small" data-act="split">Split</button> `:""}<button class="btn small" data-act="dup" title="Copy this line">+</button> <button class="btn small danger" data-act="del" title="Delete">✕</button></td>
     </tr>`;
   });
@@ -771,10 +907,24 @@ function booksData(){
   });
   return {list,res,from,to,src};
 }
+function usdTotals(res, used){
+  const rate=num(S.settings.rate); if(!rate||rate<=0) return null;
+  const to=(v,c)=>c==="USD"?v:v/rate;
+  const sum=f=>round(used.reduce((t,c)=>t+to(f(res[c]),c),0),"USD");
+  const u={rate, open:sum(r=>r.open), in:sum(r=>r.in), expense:sum(r=>r.out.expense), advance:sum(r=>r.out.advance),
+    salary:sum(r=>r.out.salary), totalOut:sum(r=>r.totalOut), expected:sum(r=>r.expected)};
+  const counted=used.every(c=>res[c].actual!=null);
+  u.actual=counted?sum(r=>r.actual):null; u.diff=counted?round(u.actual-u.expected,"USD"):null;
+  u.partial=!counted && used.some(c=>res[c].actual!=null);
+  return u;
+}
+const usd=v=>(v<0?"−$":"$")+fmtN(Math.abs(v),"USD");
+function toUSD(v,c){ const rate=num(S.settings.rate); return c==="USD"?v:(rate?v/rate:null); }
 function renderBooks(){
   const b=S.books;
   renderSourceSelect($("#bk-source"),b.source||"");
   ["from","to"].forEach(k=>$("#bk-"+k).value=b[k]||"");
+  if(document.activeElement!==$("#bk-rate")) $("#bk-rate").value=num(S.settings.rate)?fmtN(num(S.settings.rate),"USD"):"";
   CURS.forEach(c=>{ $("#bk-open-"+c).value=b["open"+c]??""; $("#bk-act-"+c).value=b["act"+c]??""; });
   if(!S.entries.length){ $("#bk-cards").innerHTML=`<div class="panel empty">Import a log to see the books.</div>`; $("#bk-detail").innerHTML=""; return; }
   const {list,res}=booksData();
@@ -788,22 +938,34 @@ function renderBooks(){
       <tr class="sub"><td>Expenses</td><td class="num">${fmtN(r.out.expense,c)}</td></tr>
       <tr class="sub"><td>Advances</td><td class="num">${fmtN(r.out.advance,c)}</td></tr>
       <tr class="sub"><td>Salaries</td><td class="num">${fmtN(r.out.salary,c)}</td></tr>
-      <tr class="total"><td>Should have on hand</td><td class="num">${fmtN(r.expected,c)}</td></tr>
+      <tr class="total"><td>Ending balance (should have)</td><td class="num">${fmtN(r.expected,c)}</td></tr>
       <tr><td>Counted</td><td class="num">${r.actual==null?"–":fmtN(r.actual,c)}</td></tr>
       <tr><td>Difference</td><td class="num">${diff}</td></tr></table></div>`; }).join("");
-  const rate=num(S.settings.rate);
-  if(rate && res.IQD && res.USD){ const comb=res.USD.expected+res.IQD.expected/rate;
-    $("#bk-cards").insertAdjacentHTML("beforeend",`<div class="cur-card"><h3><span>Combined</span><span class="hint">at ${fmtN(rate,"IQD")} IQD/$</span></h3><table><tr><td>Money in</td><td class="num">$${fmtN(round(res.USD.in+res.IQD.in/rate,"USD"),"USD")}</td></tr><tr><td>Money out</td><td class="num">$${fmtN(round(res.USD.totalOut+res.IQD.totalOut/rate,"USD"),"USD")}</td></tr><tr class="total"><td>Should have on hand</td><td class="num">$${fmtN(round(comb,"USD"),"USD")}</td></tr></table></div>`); }
+  const u=usdTotals(res,used);
+  const usdCard = !u ? `<div class="cur-card usd-card"><h3><span>Total in USD</span></h3><p class="hint" style="margin:0">Enter the exchange rate (IQD per $1) above to see money in, money out and the ending balance in dollars.</p></div>` :
+    `<div class="cur-card usd-card"><h3><span>Total in USD</span><span class="hint">IQD converted at ${fmtN(u.rate,"USD")} IQD = $1</span></h3>
+      <div class="big"><div><span>Money in</span><b class="in">${usd(u.in)}</b></div><div><span>Money out</span><b class="out">${usd(u.totalOut)}</b></div>
+        <div><span>Ending balance</span><b>${usd(u.expected)}</b></div>${u.actual!=null?`<div><span>Counted</span><b>${usd(u.actual)}</b></div><div><span>Difference</span><b>${Math.abs(u.diff)<0.01?`<span class="diff-ok">Balanced</span>`:`<span class="diff-bad">${u.diff>0?"+":"−"}$${fmtN(Math.abs(u.diff),"USD")}</span>`}</b></div>`:""}</div>
+      <div class="usd-cols"><table>
+        <tr><td>Opening balance</td><td class="num">${usd(u.open)}</td></tr>
+        <tr><td class="in">Money in</td><td class="num in">+${usd(u.in)}</td></tr>
+        <tr><td class="out">Money out</td><td class="num out">−${usd(u.totalOut)}</td></tr>
+        <tr class="total"><td>Ending balance (should have)</td><td class="num">${usd(u.expected)}</td></tr></table>
+      <table><tr class="sub"><td>Expenses</td><td class="num">${usd(u.expense)}</td></tr>
+        <tr class="sub"><td>Advances</td><td class="num">${usd(u.advance)}</td></tr>
+        <tr class="sub"><td>Salaries</td><td class="num">${usd(u.salary)}</td></tr>
+        <tr><td>Counted</td><td class="num">${u.actual==null?(u.partial?`<span class="hint">enter counted for every currency</span>`:"–"):usd(u.actual)}</td></tr></table></div></div>`;
+  $("#bk-cards").insertAdjacentHTML("afterbegin",usdCard);
   // details
   let d="";
   const counts=used.flatMap(c=>res[c].counts.map(x=>({...x,c})));
   if(counts.length){ d+=`<h3 class="sec">Safe counts in the log</h3><div class="tablewrap"><table class="data" style="min-width:600px"><thead><tr><th>Date</th><th>Note</th><th>Cur.</th><th class="num">Counted</th><th class="num">Books said</th><th class="num">Difference</th></tr></thead><tbody>${counts.map(x=>`<tr><td>${esc(x.e.date)}</td><td>${esc(x.e.desc)}</td><td>${x.c}</td><td class="num">${fmtN(x.e.amount,x.c)}</td><td class="num">${fmtN(x.expected,x.c)}</td><td class="num ${Math.abs(x.diff)<1?"":"out"}">${x.diff>0?"+":""}${fmtN(x.diff,x.c)}</td></tr>`).join("")}</tbody></table></div><p class="hint">“Books said” = opening balance plus money in minus money out up to that count. Only meaningful once the opening balance is right.</p>`; }
-  d+=`<h3 class="sec">Ledger</h3><div class="tablewrap"><table class="data" style="min-width:900px"><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th>${used.map(c=>`<th class="num">${c} in</th><th class="num">${c} out</th><th class="num">${c} balance</th>`).join("")}</tr></thead><tbody>`;
+  d+=`<h3 class="sec">Ledger</h3><div class="tablewrap"><table class="data" style="min-width:900px"><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th>${used.map(c=>`<th class="num">${c} in</th><th class="num">${c} out</th><th class="num">${c} balance</th>`).join("")}${u?`<th class="num">Balance in USD</th>`:""}</tr></thead><tbody>`;
   const runs={}; used.forEach(c=>runs[c]=res[c].open);
   list.forEach(e=>{ if(!used.includes(e.currency)) return; const c=e.currency, dir=TYPES[e.type].dir, a=Math.abs(e.amount);
     if(dir>0) runs[c]+=a; else if(dir<0) runs[c]-=a;
     d+=`<tr><td>${esc(e.date)}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td>${used.map(k=>k!==c?`<td></td><td></td><td class="num hint">${fmtN(round(runs[k],k),k)}</td>`:
-      `<td class="num in">${dir>0?fmtN(a,c):""}</td><td class="num out">${dir<0?fmtN(a,c):""}</td><td class="num">${e.type==="count"?`<i>count ${fmtN(e.amount,c)}</i>`:fmtN(round(runs[c],c),c)}</td>`).join("")}</tr>`; });
+      `<td class="num in">${dir>0?fmtN(a,c):""}</td><td class="num out">${dir<0?fmtN(a,c):""}</td><td class="num">${e.type==="count"?`<i>count ${fmtN(e.amount,c)}</i>`:fmtN(round(runs[c],c),c)}</td>`).join("")}${u?`<td class="num"><b>${usd(round(used.reduce((t,k)=>t+(k==="USD"?runs[k]:runs[k]/u.rate),0),"USD"))}</b></td>`:""}</tr>`; });
   d+=`</tbody></table></div>`;
   $("#bk-detail").innerHTML=d;
   const nCount=list.filter(e=>e.type==="count").length;
@@ -813,18 +975,20 @@ function reportHTML(){
   const {list,res,from,to,src}=booksData(); const st=S.settings;
   const used=CURS.filter(c=>list.some(e=>e.currency===c)||num(S.books["open"+c]));
   const period=(from||list[0]?.date||"")+" to "+(to||list[list.length-1]?.date||"");
-  let h=`<div class="report"><div class="rh"><div><h1>Cash Report</h1><div>${esc(st.orgName)}</div></div><div class="meta">Period: ${esc(period)}<br>${src?"Source: "+esc(src)+"<br>":""}Printed ${esc(new Date().toLocaleString("en-GB"))}</div></div>`;
-  h+=`<h2>Summary</h2><table><thead><tr><th></th>${used.map(c=>`<th class="n">${c}</th>`).join("")}</tr></thead><tbody>`;
-  const row=(label,f,cls="")=>`<tr class="${cls}"><td>${label}</td>${used.map(c=>`<td class="n">${f(res[c],c)}</td>`).join("")}</tr>`;
-  h+=row("Opening balance",(r,c)=>fmtN(r.open,c))+row("Money in",(r,c)=>fmtN(r.in,c))+row("Expenses",(r,c)=>fmtN(r.out.expense,c))+row("Advances",(r,c)=>fmtN(r.out.advance,c))+row("Salaries",(r,c)=>fmtN(r.out.salary,c))
-    +row("Total money out",(r,c)=>fmtN(r.totalOut,c),"t")+row("Should have on hand",(r,c)=>fmtN(r.expected,c),"t")+row("Counted",(r,c)=>r.actual==null?"–":fmtN(r.actual,c))+row("Difference",(r,c)=>r.diff==null?"–":(r.diff>0?"+":"")+fmtN(r.diff,c),"t");
+  const u=usdTotals(res,used);
+  let h=`<div class="report"><div class="rh"><div><h1>Cash Report</h1><div>${esc(st.orgName)}</div></div><div class="meta">Period: ${esc(period)}<br>${u?`Exchange rate: ${fmtN(u.rate,"USD")} IQD = $1<br>`:""}${src?"Source: "+esc(src)+"<br>":""}Printed ${esc(new Date().toLocaleString("en-GB"))}</div></div>`;
+  if(u) h+=`<table style="width:auto;margin-bottom:14px"><tbody><tr><td style="font-size:11pt;padding:6px 12px">Money in <b>${usd(u.in)}</b></td><td style="font-size:11pt;padding:6px 12px">Money out <b>${usd(u.totalOut)}</b></td><td style="font-size:12pt;padding:6px 12px;background:#e9edf2">Ending balance <b>${usd(u.expected)}</b></td>${u.actual!=null?`<td style="font-size:11pt;padding:6px 12px">Counted <b>${usd(u.actual)}</b> · Difference <b>${u.diff>0?"+":""}${usd(u.diff)}</b></td>`:""}</tr></tbody></table>`;
+  h+=`<h2>Summary</h2><table><thead><tr><th></th>${used.map(c=>`<th class="n">${c}</th>`).join("")}${u?`<th class="n">Total in USD</th>`:""}</tr></thead><tbody>`;
+  const row=(label,f,cls="",uk)=>`<tr class="${cls}"><td>${label}</td>${used.map(c=>`<td class="n">${f(res[c],c)}</td>`).join("")}${u?`<td class="n"><b>${u[uk]==null?"–":(uk==="diff"&&u[uk]>0?"+":"")+usd(u[uk])}</b></td>`:""}</tr>`;
+  h+=row("Opening balance",(r,c)=>fmtN(r.open,c),"","open")+row("Money in",(r,c)=>fmtN(r.in,c),"","in")+row("Expenses",(r,c)=>fmtN(r.out.expense,c),"","expense")+row("Advances",(r,c)=>fmtN(r.out.advance,c),"","advance")+row("Salaries",(r,c)=>fmtN(r.out.salary,c),"","salary")
+    +row("Total money out",(r,c)=>fmtN(r.totalOut,c),"t","totalOut")+row("Ending balance (should have)",(r,c)=>fmtN(r.expected,c),"t","expected")+row("Counted",(r,c)=>r.actual==null?"–":fmtN(r.actual,c),"","actual")+row("Difference",(r,c)=>r.diff==null?"–":(r.diff>0?"+":"")+fmtN(r.diff,c),"t","diff");
   h+=`</tbody></table>`;
   const counts=used.flatMap(c=>res[c].counts.map(x=>({...x,c})));
   if(counts.length) h+=`<h2>Safe counts</h2><table><thead><tr><th>Date</th><th>Note</th><th>Cur.</th><th class="n">Counted</th><th class="n">Books said</th><th class="n">Difference</th></tr></thead><tbody>${counts.map(x=>`<tr><td>${x.e.date}</td><td>${esc(x.e.desc)}</td><td>${x.c}</td><td class="n">${fmtN(x.e.amount,x.c)}</td><td class="n">${fmtN(x.expected,x.c)}</td><td class="n">${x.diff>0?"+":""}${fmtN(x.diff,x.c)}</td></tr>`).join("")}</tbody></table>`;
   used.forEach(c=>{ const p=Object.entries(res[c].projects).sort((a,b)=>b[1]-a[1]); if(!p.length) return;
     h+=`<h2>Money out by project – ${c}</h2><table><tbody>${p.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${fmtN(round(v,c),c)}</td></tr>`).join("")}<tr class="t"><td>Total</td><td class="n">${fmtN(res[c].totalOut,c)}</td></tr></tbody></table>`; });
-  h+=`<h2>All transactions</h2><table><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th><th>Cur.</th><th class="n">In</th><th class="n">Out</th></tr></thead><tbody>`;
-  list.forEach(e=>{ const dir=TYPES[e.type].dir; h+=`<tr><td>${e.date}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td><td>${e.currency}</td><td class="n">${dir>0?fmtN(Math.abs(e.amount),e.currency):""}</td><td class="n">${dir<0?fmtN(Math.abs(e.amount),e.currency):e.type==="count"?"(count "+fmtN(e.amount,e.currency)+")":""}</td></tr>`; });
+  h+=`<h2>All transactions</h2><table><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th><th>Cur.</th><th class="n">In</th><th class="n">Out</th>${u?`<th class="n">USD value</th>`:""}</tr></thead><tbody>`;
+  list.forEach(e=>{ const dir=TYPES[e.type].dir; h+=`<tr><td>${e.date}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td><td>${e.currency}</td><td class="n">${dir>0?fmtN(Math.abs(e.amount),e.currency):""}</td><td class="n">${dir<0?fmtN(Math.abs(e.amount),e.currency):e.type==="count"?"(count "+fmtN(e.amount,e.currency)+")":""}</td>${u?`<td class="n">${e.type==="count"?"":(TYPES[e.type].dir<0?"−":"")+usd(round(toUSD(Math.abs(e.amount),e.currency),"USD"))}</td>`:""}</tr>`; });
   h+=`</tbody></table>`;
   const skipped=S.entries.filter(e=>e.type==="skip").length; if(skipped) h+=`<p style="font-size:9pt">${skipped} line(s) from the chat were marked “skip” and are not counted.</p>`;
   h+=`<div class="sig"><div>Prepared by</div><div>Checked by</div></div></div>`;
@@ -836,18 +1000,26 @@ const COLW=[15.6640625,10.77734375,7.21875,10,14.6640625].map(w=>Math.round(w*7+
 const ROWH=(()=>{ const h={1:14.25,2:20.4,3:10.2,4:25.2,24:33.75,25:9.75,26:15.75,27:13.2,28:13.2,29:13.2}; const a=[]; for(let r=1;r<=29;r++) a[r]=Math.round((h[r]??18)*4/3); return a; })();
 const RC_W=COLW.reduce((a,b)=>a+b,0), RC_H=ROWH.slice(1).reduce((a,b)=>a+b,0);
 function descStyle(s, room){ const n=(s||"").length; if(n*7.2<=room) return ""; if(n*6<=room) return "font-size:10pt"; return "font-size:9pt"; }
+function sigFor(name){ const st=S.settings; if(!st.useSignatures||!name) return null; const k=Object.keys(st.signatures||{}).find(n=>n.trim().toLowerCase()===String(name).trim().toLowerCase()); return k?st.signatures[k]:null; }
+function rowTop(r){ let y=0; for(let i=1;i<r;i++) y+=ROWH[i]; return y; }
+function sigHTML(src,x,w){ const h=ROWH[27]+ROWH[28]-1, y=rowTop(29)-h+2; return `<img class="logo" src="${src}" alt="" style="left:${x+6}px;top:${y}px;width:${w-12}px;height:${h}px;object-fit:contain">`; }
+let sigImgs="";
 function receiptHTML(e){
   const rc=getRc(e), st=S.settings, cur=e.currency;
   const td=(cls,content="",attr="")=>`<td class="${cls}"${attr}>${content}</td>`;
   const row=(r,cells)=>`<tr style="height:${ROWH[r]}px">${cells}</tr>`;
-  let h=`<div class="receipt" style="width:${RC_W}px;height:${RC_H}px"><img class="logo" src="${LOGO}" alt="" style="left:${COLW[0]+COLW[1]+COLW[2]+41}px;top:${ROWH[1]+ROWH[2]+1}px;width:116px;height:86px">`;
+  // Logo sits between the organization name (row 2) and the Business row (row 6), centred over the Date box columns (E:F)
+  const top=ROWH[1]+ROWH[2], bandH=ROWH[3]+ROWH[4]+ROWH[5], efW=COLW[3]+COLW[4];
+  let lh=bandH-6, lw=Math.round(lh*234/170); if(lw>efW-10){ lw=efW-10; lh=Math.round(lw*170/234); }
+  const lx=COLW[0]+COLW[1]+COLW[2]+Math.round((efW-lw)/2), ly=top+Math.round((bandH-lh)/2);
+  let h=`<div class="receipt" style="width:${RC_W}px;height:${RC_H}px"><img class="logo" src="${LOGO}" alt="" style="left:${lx}px;top:${ly}px;width:${lw}px;height:${lh}px">`;
   h+=`<table style="width:${RC_W}px"><colgroup>${COLW.map(w=>`<col style="width:${w}px">`).join("")}</colgroup><tbody>`;
   h+=row(1,`<td colspan="5"></td>`);
   h+=row(2,td("rob b slate ov","&nbsp;"+esc(st.orgName),' colspan="5" style="font-size:12pt"'));
   h+=row(3,td("rob b slate ov",esc(st.orgEmail),' colspan="5" style="font-size:8pt;padding-left:4px"'));
   h+=row(4,`<td colspan="5"></td>`);
   h+=row(5,td("rob b slate ov",esc(st.receiptTitle),` colspan="5" style="font-size:14pt;padding-left:${COLW[0]-12}px"`));
-  h+=row(6,td("rob b slate bL bT bB","Business:",' style="font-size:11pt"')+td("bT bB bR",esc(rc.business),' colspan="2"')+`<td></td><td></td>`);
+  h+=row(6,td("rob b slate bL bT bB","Business:",' style="font-size:11pt"')+td("bT bB bR",esc(rc.business),' colspan="2"')+`<td style="border:none"></td><td style="border:none"></td>`);
   h+=row(7,td("rob b slate bL bB","Category:",' style="font-size:11pt"')+td("bB",esc(rc.category),' colspan="2"')+td("b bL bT","Date:")+td("b c bR bT",esc(fmtDate(rc.date))));
   h+=row(8,td("rob b bL bB","Project:",' style="font-size:11pt"')+td("bB",esc(rc.project),' colspan="2"')+td("bL bB")+td("bR bB"));
   h+=row(9,td("rob b g43 c bL bB","DESCRIPTION",' colspan="2" style="font-size:9pt"')+td("rob b g43 c bB","QTY",' style="font-size:9pt"')+td("rob b g43 c bB","UNIT PRICE",' style="font-size:9pt"')+td("rob b g43 c bR bB","TOTAL",' style="font-size:9pt"'));
@@ -861,8 +1033,9 @@ function receiptHTML(e){
   h+=row(26,td("rob ov",esc(st.statement.replace(/\{payer\}/g,rc.payer||"________")),' colspan="5" style="font-size:11pt;padding-left:4px"'));
   h+=row(27,`<td colspan="5"></td>`);
   h+=row(28,td("bB","",' colspan="2"')+`<td></td>`+td(rc.verifier?"bB":"","",' colspan="2"'));
+  sigImgs=[sigFor(rc.payer)&&sigHTML(sigFor(rc.payer),0,COLW[0]+COLW[1]), rc.verifier&&sigFor(rc.verifier)&&sigHTML(sigFor(rc.verifier),COLW[0]+COLW[1]+COLW[2],COLW[3]+COLW[4])].filter(Boolean).join("");
   h+=row(29,td("ari c",esc(rc.payer),' colspan="2"')+`<td></td>`+td("ari c",esc(rc.verifier),' colspan="2"'));
-  return h+`</tbody></table></div>`;
+  return h+`</tbody></table>${sigImgs}</div>`;
 }
 
 /* ---------- receipts tab ---------- */
@@ -881,7 +1054,7 @@ function cardHTML(e,n){
   return `<div class="rc-card ${rc.reviewed?"done":"need"}" data-id="${e.id}">
     <div class="rc-form">
       <div class="rc-head"><b>#${n} · ${fmtM(Math.abs(e.amount),e.currency)}</b><div class="chips">${rc.reviewed?`<span class="chip ok">Reviewed</span>`:miss.map(m=>`<span class="chip">no ${m}</span>`).join("")}</div></div>
-      <div class="full hint" title="${esc(e.text)}">From ${esc(e.source)} · ${esc(e.who||"?")} · ${esc(niceDate(e.date))} ${esc(e.time)}<br>“${esc(e.text)}”</div>
+      <div class="full hint" title="${esc(e.text)}">From ${esc(e.source)} · ${esc(e.who||"?")} · ${esc(niceDate(e.date))} ${esc(e.time)}<br>“${esc(e.text)}”${e.photo?` · <a class="photo-link" href="${esc(e.photo)}" target="_blank" rel="noopener">📷 Receipt photo</a>`:""}${e.noShopReceipt?` · <span class="chip">no shop receipt</span>`:""}</div>
       <label class="f">Business<input type="text" data-r="business" value="${esc(rc.business)}" list="dl-business"></label>
       <label class="f">Category<input type="text" data-r="category" value="${esc(rc.category)}" list="dl-category"></label>
       <label class="f">Project<input type="text" data-r="project" value="${esc(rc.project)}" list="dl-project"></label>
@@ -966,6 +1139,7 @@ function bind(){
 
   // books
   const bk=(k,v)=>{ S.books[k]=v; save(); renderBooks(); };
+  $("#bk-rate").addEventListener("change",e=>{ const v=num(e.target.value); S.settings.rate=v&&v>0?String(v):""; save(); renderBooks(); });
   ["from","to"].forEach(k=>$("#bk-"+k).addEventListener("change",e=>bk(k,e.target.value)));
   $("#bk-source").addEventListener("change",e=>bk("source",e.target.value));
   CURS.forEach(c=>{ $("#bk-open-"+c).addEventListener("change",e=>bk("open"+c,e.target.value)); $("#bk-act-"+c).addEventListener("change",e=>bk("act"+c,e.target.value)); });
@@ -1001,7 +1175,16 @@ function bind(){
 
   // settings
   const dlg=$("#settings");
-  $("#open-settings").addEventListener("click",()=>{ $$("[data-s]",dlg).forEach(el=>el.value=S.settings[el.dataset.s]??""); dlg.showModal(); });
+  $("#open-settings").addEventListener("click",()=>openSettings());
+  setupSigPad();
+  $("#sheet-setup").addEventListener("click",()=>openSettings("sheet"));
+  $("#sheet-sync").addEventListener("click",e=>syncFromSheet(e.currentTarget));
+  $("#ent-sync").addEventListener("click",e=>syncFromSheet(e.currentTarget));
+  $("#sheet-test").addEventListener("click",async()=>{ const el=$("#sheet-status"); el.textContent="Checking…";
+    try{ const d=await sheetCall({action:"ping"}); el.textContent=`Connected ✓ ${d.rows!=null?d.rows+" row(s) in the sheet":""}`; }catch(e){ el.textContent=e.message; } });
+  $("#phone-link-btn").addEventListener("click",()=>{ const l=phoneSetupLink(); if(!l){ $("#sheet-status").textContent="Fill in the sheet link, access code and phone app address first."; return; }
+    $("#phone-link").value=l; $("#phone-link-box").hidden=false; $("#phone-link").select(); });
+  $("#phone-link-copy").addEventListener("click",async()=>{ const i=$("#phone-link"); try{ await navigator.clipboard.writeText(i.value); toast("Link copied."); }catch(e){ i.select(); document.execCommand("copy"); toast("Link copied."); } });
   $("[data-close]",dlg).addEventListener("click",()=>dlg.close());
   $$("[data-s]",dlg).forEach(el=>el.addEventListener("input",()=>{ S.settings[el.dataset.s]=el.value; save(); renderCounts(); }));
   dlg.addEventListener("close",()=>renderAll());

@@ -16,13 +16,13 @@ jobs:
   build:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build app and DMG
         run: ./mac/build.sh --universal --dmg
 
       - name: Upload DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Zip-Receipt-dmg
           path: mac/build/Zip-Receipt.dmg

@@ -46,7 +46,7 @@ In the browser version, use **Settings → Save backup file**. In the Mac app, u
 
 ## Native bridge (for the future Windows version)
 
-`index.html` checks for `window.webkit.messageHandlers.zip` (Mac) or `window.zipNative` (any other shell). Each call is `native({cmd, ...})` and returns a Promise. A Windows shell (C# + WebView2) only needs to implement the same six commands:
+`index.html` checks for `window.webkit.messageHandlers.zip` (Mac) or `window.zipNative` (any other shell). Each call is `native({cmd, ...})` and returns a Promise. A Windows shell (C# + WebView2) only needs to implement the same seven commands:
 
 | cmd | fields | returns |
 |---|---|---|
@@ -56,5 +56,6 @@ In the browser version, use **Settings → Save backup file**. In the Mac app, u
 | `pdf` | `path`, `landscape` | the full path; prints the page's print layout straight to a PDF |
 | `print` | `landscape` | `true`; shows the system print dialog |
 | `reveal` | `path` (optional) | `true`; shows the file or folder in Finder / Explorer |
+| `http` | `url`, `body` (optional) | response text; fallback for reaching the Google Sheet |
 
 Every `path` is relative to `Documents/Zip_Receipt` and must not contain `..`. Errors reject the Promise. A cancelled print rejects with a message containing "cancelled".

@@ -59,6 +59,23 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
                 runPrint(to: url, landscape: body["landscape"] as? Bool ?? false, reply: replyHandler)
             case "print":
                 runPrint(to: nil, landscape: body["landscape"] as? Bool ?? false, reply: replyHandler)
+            case "http":
+                // Fallback for reaching the Google Sheet if the page's own request is blocked
+                guard let str = body["url"] as? String, let url = URL(string: str),
+                      ["https", "http"].contains(url.scheme ?? "") else { throw BridgeError(message: "bad url") }
+                var req = URLRequest(url: url, timeoutInterval: 60)
+                if let text = body["body"] as? String {
+                    req.httpMethod = "POST"
+                    req.httpBody = text.data(using: .utf8)
+                    req.setValue("text/plain;charset=utf-8", forHTTPHeaderField: "Content-Type")
+                }
+                URLSession.shared.dataTask(with: req) { data, _, error in
+                    let text = data.flatMap { String(data: $0, encoding: .utf8) }
+                    DispatchQueue.main.async {
+                        if let text = text { replyHandler(text, nil) }
+                        else { replyHandler(nil, error?.localizedDescription ?? "no response") }
+                    }
+                }.resume()
             case "reveal":
                 try fm.createDirectory(at: base, withIntermediateDirectories: true)
                 if let p = body["path"] as? String, let url = try? safeURL(p), fm.fileExists(atPath: url.path) {
