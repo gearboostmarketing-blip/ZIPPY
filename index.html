@@ -494,7 +494,7 @@ body.native .web-only{display:none}
       <label class="f">Period<select id="tg-period"><option value="week">This week</option><option value="lastweek">Last week</option><option value="month" selected>Month picked above</option><option value="custom">Choose dates…</option></select></label>
       <label class="f tg-custom" hidden>From<input type="date" id="tg-from"></label>
       <label class="f tg-custom" hidden>To<input type="date" id="tg-to"></label>
-      <label class="f">Which lines<select id="tg-which"><option value="mine">My reimbursable expenses</option><option value="myall">Everything I paid (who = me)</option><option value="expenses">All expenses</option><option value="all">Everything (in and out)</option></select></label>
+      <label class="f">Which lines<select id="tg-which"><option value="safe" selected>Everything except personal</option><option value="mine">My reimbursable expenses</option><option value="myall">Everything I paid (who = me)</option><option value="expenses">All expenses</option><option value="all">Everything (in and out)</option></select></label>
       <div class="spacer"></div>
       <button class="btn primary" id="tg-copy">Copy</button>
     </div>
@@ -1944,17 +1944,25 @@ function renderTelegram(){
   if(per==="week") [from,to]=weekRange(0); else if(per==="lastweek") [from,to]=weekRange(-1);
   else if(per==="month"){ from=ui.month+"-01"; to=ui.month+"-31"; }
   else { from=$("#tg-from").value||ui.month+"-01"; to=$("#tg-to").value||today(); }
-  const which=$("#tg-which").value, me=myFirst();
+  const which=$("#tg-which").value, me=myFirst(), both=which==="all"||which==="safe";
   const list=sorted(S.entries.filter(e=>e.date>=from&&e.date<=to&&e.type!=="skip"&&e.type!=="count"&&(
-    which==="mine"?(e.type==="expense"&&e.reimb):which==="myall"?(TYPES[e.type].dir<0&&me&&((e.who||"").toLowerCase().startsWith(me)||(e.rc&&(e.rc.payer||"").toLowerCase().startsWith(me)))):which==="expenses"?e.type==="expense":true)));
+    which==="mine"?(e.type==="expense"&&e.reimb):which==="myall"?(TYPES[e.type].dir<0&&me&&((e.who||"").toLowerCase().startsWith(me)||(e.rc&&(e.rc.payer||"").toLowerCase().startsWith(me)))):which==="expenses"?e.type==="expense":which==="safe"?!(e.type==="expense"&&e.reimb):true)));
   const nice=d=>new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
-  const title={mine:"My reimbursable expenses",myall:"What I paid",expenses:"Expenses",all:"Cash log"}[which];
-  const lines=list.map(e=>{ const sign=which==="all"&&TYPES[e.type].dir>0?"+":""; const tag=which==="all"&&e.type!=="expense"?` (${TYPES[e.type].label.toLowerCase()})`:"";
+  const title={mine:"My reimbursable expenses",myall:"What I paid",expenses:"Expenses",all:"Cash log",safe:"Cash log (without personal)"}[which];
+  const lines=list.map(e=>{ const sign=both&&TYPES[e.type].dir>0?"+":""; const tag=both&&e.type!=="expense"?` (${TYPES[e.type].label.toLowerCase()})`:"";
     return `${e.date} ${sign}${fmtN(Math.abs(e.amount),e.currency)} ${e.currency.toLowerCase()} ${e.desc}${tag}`; });
-  const tot={IQD:0,USD:0}; list.forEach(e=>{ tot[e.currency]+=(which==="all"&&TYPES[e.type].dir>0?-1:1)*Math.abs(e.amount); });
+  const tot={IQD:0,USD:0}; list.forEach(e=>{ tot[e.currency]+=(both&&TYPES[e.type].dir>0?-1:1)*Math.abs(e.amount); });
   const r=rateFor(to.slice(0,7)).rate, parts=[];
-  if(tot.IQD) parts.push(fmtN(tot.IQD,"IQD")+" IQD"); if(tot.USD) parts.push("$"+fmtN(round(tot.USD,"USD"),"USD"));
-  const totLine=list.length?`Total: ${parts.join(" + ")||"0"}${tot.IQD&&r?` ≈ $${fmtN(round(tot.USD+tot.IQD/r,"USD"),"USD")} at ${fmtN(r,"USD")}`:""}${which==="all"?" (net out)":""}`:"Nothing in this period.";
+  let totLine;
+  if(both){ // money in and out together: show each side, then the net
+    const io={in:{IQD:0,USD:0},out:{IQD:0,USD:0}}; list.forEach(e=>{ io[TYPES[e.type].dir>0?"in":"out"][e.currency]+=Math.abs(e.amount); });
+    const side=o=>[o.IQD?fmtN(o.IQD,"IQD")+" IQD":"",o.USD?"$"+fmtN(round(o.USD,"USD"),"USD"):""].filter(Boolean).join(" + ")||"0";
+    const net=r?(io.out.USD-io.in.USD)+(io.out.IQD-io.in.IQD)/r:null;
+    totLine=list.length?`In: ${side(io.in)}\nOut: ${side(io.out)}${net!=null&&(io.in.IQD||io.out.IQD||true)?`\n${net>=0?"Net out":"Net in"}: ≈ $${fmtN(round(Math.abs(net),"USD"),"USD")}${(io.in.IQD||io.out.IQD)?` at ${fmtN(r,"USD")}`:""}`:""}`:"Nothing in this period.";
+  } else {
+    if(tot.IQD) parts.push(fmtN(tot.IQD,"IQD")+" IQD"); if(tot.USD) parts.push("$"+fmtN(round(tot.USD,"USD"),"USD"));
+    totLine=list.length?`Total: ${parts.join(" + ")||"0"}${tot.IQD&&r?` ≈ $${fmtN(round(tot.USD+tot.IQD/r,"USD"),"USD")} at ${fmtN(r,"USD")}`:""}`:"Nothing in this period.";
+  }
   $("#tg-out").value=`${title} · ${nice(from)} – ${nice(to.slice(0,10)>today()&&per==="month"?today():to)}\n\n${lines.join("\n")}${lines.length?"\n\n":""}${totLine}`;
 }
 
