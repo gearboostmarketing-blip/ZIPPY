@@ -18,6 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Use the tag as the version (tags like v2.2 only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          sed -i.bak "s#const APP_VERSION = \"[^\"]*\"#const APP_VERSION = \"${V}\"#" index.html && rm -f index.html.bak
+          sed -i.bak "s#<Version>[^<]*</Version>#<Version>${V}.0</Version>#" windows/ZipReceipt.csproj && rm -f windows/ZipReceipt.csproj.bak
+          sed -i.bak "s#^AppVersion=.*#AppVersion=${V}#" windows/installer.iss && rm -f windows/installer.iss.bak
+
+      - name: Point the updater at this repository
+        shell: bash
+        run: sed -i.bak "s#__UPDATE_REPO__#${GITHUB_REPOSITORY}#" index.html && rm -f index.html.bak
+
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"

@@ -26,6 +26,7 @@ sealed class MainForm : Form
     static readonly string Docs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Zip_Receipt");
     static readonly string AppData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZipReceipt");
     static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(60) };
+    static readonly HttpClient DownloadHttp = new() { Timeout = TimeSpan.FromMinutes(15) };
 
     // Gives the page window.zipNative(msg) -> Promise, the same contract index.html uses on the Mac.
     const string BridgeJs = @"(() => {
@@ -212,6 +213,23 @@ sealed class MainForm : Form
                     using var resp = await Http.SendAsync(msg);
                     var text = await resp.Content.ReadAsStringAsync();
                     result = Bool(r, "full") ? new { status = (int)resp.StatusCode, text } : text;
+                    break;
+                }
+                case "update":
+                {
+                    // Download the new installer from GitHub, run it quietly, and close; it reopens Zip Receipt when done
+                    var url = Str(r, "url") ?? "";
+                    if (!url.StartsWith("https://")) throw new InvalidOperationException("bad update link");
+                    var exe = Path.Combine(Path.GetTempPath(), "Zip-Receipt-Setup.exe");
+                    using (var resp = await DownloadHttp.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                    {
+                        resp.EnsureSuccessStatusCode();
+                        await using var fs = File.Create(exe);
+                        await resp.Content.CopyToAsync(fs);
+                    }
+                    Process.Start(new ProcessStartInfo(exe, "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS") { UseShellExecute = true });
+                    result = true;
+                    _ = Task.Run(async () => { await Task.Delay(800); BeginInvoke(new Action(Close)); });
                     break;
                 }
                 default:

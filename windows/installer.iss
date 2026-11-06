@@ -2,7 +2,7 @@
 [Setup]
 AppId={{8C1F3B7E-6A0D-4E2B-9B7C-2F5A1D9E4C31}
 AppName=Zip Receipt
-AppVersion=2.0
+AppVersion=2.1
 AppPublisher=Hands of Hope (HOH)
 DefaultDirName={localappdata}\Programs\Zip Receipt
 DisableProgramGroupPage=yes
@@ -32,3 +32,5 @@ Name: "{autodesktop}\Zip Receipt"; Filename: "{app}\ZipReceipt.exe"; Tasks: desk
 
 [Run]
 Filename: "{app}\ZipReceipt.exe"; Description: "Open Zip Receipt"; Flags: nowait postinstall skipifsilent
+; after an automatic update (silent install), reopen Zip Receipt
+Filename: "{app}\ZipReceipt.exe"; Flags: nowait; Check: WizardSilent

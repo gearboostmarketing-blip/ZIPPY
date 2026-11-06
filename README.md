@@ -1,4 +1,4 @@
-# ⚡ Zip Receipt v2.0
+# ⚡ Zip Receipt v2.1
 
 Offline cash books and official org receipts for Hands of Hope (HOH), built from the cash log.
 
@@ -57,6 +57,19 @@ The receipt copies `HOH_Org_Receipt_Template.xlsx`. The header text, statement w
 
 `index.html` includes [fflate](https://github.com/101arrowz/fflate) 0.8.2 (MIT licence) to read .xlsx files offline.
 
-## Releases
+## Releases and automatic updates
 
-To publish a version, create a tag such as `v1.1` in GitHub Desktop (**History**, right-click the latest commit, **Create Tag**) and push it. GitHub builds both installers and attaches `Zip-Receipt.dmg` and `Zip-Receipt-Setup.exe` to a **Release** you can link staff to.
+**Publishing a new version**
+1. Push your changes.
+2. In GitHub Desktop, go to **History**, right-click the latest commit, choose **Create Tag**, type the new version (for example `v2.2`), and click **Push origin**.
+3. GitHub builds the Mac and Windows installers with that version number and puts them on a **Release**, along with `index.html`.
+4. Optional: open the Release on github.com and write what changed. The apps show this text under **What's new**.
+
+**How the apps update:** when Zip Receipt opens (and twice a day after that), it checks the latest Release. If it's newer, a banner offers **Update now**. The Mac and Windows apps download the new version, install it over the old one, and reopen by themselves. Data in `Documents/Zip_Receipt` is never touched. The browser version shows a **Download** button instead.
+
+**One-time requirements**
+- **Make this repository public** (github.com → repository **Settings → General → Danger Zone → Change visibility → Public**). GitHub only lets apps download releases from public repositories. It contains only the app's code: data, names, keys and passwords are never stored here.
+- **Install v2.1 by hand once** (it's the first version with the updater). After that, updates are one click.
+- **Mac:** keep Zip Receipt in your **Applications** folder, so it can replace itself.
+
+**Checking manually:** **Settings → Updates → Check for updates**.

@@ -9,6 +9,63 @@ struct BridgeError: LocalizedError {
     var errorDescription: String? { message }
 }
 
+/// Installs an update: downloads the DMG, copies the new app next to the old one, and once this
+/// app has quit, a small script swaps them and reopens Zip Receipt. If anything fails, the old app stays.
+enum Updater {
+    static func install(from url: URL, done: @escaping (String?) -> Void) {
+        let target = Bundle.main.bundlePath
+        if target.contains("/AppTranslocation/") || !FileManager.default.isWritableFile(atPath: (target as NSString).deletingLastPathComponent) {
+            done("Move Zip Receipt into your Applications folder first, then try again."); return
+        }
+        var request = URLRequest(url: url, timeoutInterval: 600)
+        request.setValue("application/octet-stream", forHTTPHeaderField: "Accept")
+        URLSession.shared.downloadTask(with: request) { tmp, response, error in
+            guard let tmp = tmp, (response as? HTTPURLResponse)?.statusCode == 200 else {
+                done(error?.localizedDescription ?? "The download didn't finish."); return
+            }
+            let fm = FileManager.default
+            let dir = fm.temporaryDirectory.appendingPathComponent("zr-update-\(UUID().uuidString)")
+            do {
+                try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+                let dmg = dir.appendingPathComponent("Zip-Receipt.dmg")
+                try fm.moveItem(at: tmp, to: dmg)
+                let mount = dir.appendingPathComponent("mnt")
+                try fm.createDirectory(at: mount, withIntermediateDirectories: true)
+                let attach = Process()
+                attach.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+                attach.arguments = ["attach", dmg.path, "-nobrowse", "-readonly", "-noautoopen", "-mountpoint", mount.path]
+                try attach.run(); attach.waitUntilExit()
+                guard attach.terminationStatus == 0 else { done("Couldn't open the downloaded update."); return }
+                let newApp = mount.appendingPathComponent("Zip Receipt.app")
+                guard fm.fileExists(atPath: newApp.path) else { done("The downloaded update doesn't contain Zip Receipt."); return }
+                let pid = ProcessInfo.processInfo.processIdentifier
+                let q = { (p: String) in "'" + p.replacingOccurrences(of: "'", with: "'\\''") + "'" }
+                let script = """
+                #!/bin/sh
+                NEW=\(q(newApp.path)); TARGET=\(q(target)); MNT=\(q(mount.path)); DIR=\(q(dir.path))
+                while kill -0 \(pid) 2>/dev/null; do sleep 0.3; done
+                if /usr/bin/ditto "$NEW" "$TARGET.new"; then
+                  rm -rf "$TARGET.old"; mv "$TARGET" "$TARGET.old" && mv "$TARGET.new" "$TARGET" && rm -rf "$TARGET.old"
+                fi
+                /usr/bin/hdiutil detach "$MNT" -quiet
+                /usr/bin/xattr -dr com.apple.quarantine "$TARGET" 2>/dev/null
+                /usr/bin/open "$TARGET"
+                rm -rf "$DIR"
+                """
+                let sh = dir.appendingPathComponent("update.sh")
+                try script.write(to: sh, atomically: true, encoding: .utf8)
+                let run = Process()
+                run.executableURL = URL(fileURLWithPath: "/bin/sh")
+                run.arguments = [sh.path]
+                try run.run()           // keeps running after Zip Receipt quits
+                done(nil)
+            } catch {
+                done(error.localizedDescription)
+            }
+        }.resume()
+    }
+}
+
 @MainActor
 final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKNavigationDelegate {
     weak var web: WKWebView?
@@ -91,6 +148,15 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
                         else { replyHandler(out, nil) }
                     }
                 }.resume()
+            case "update":
+                // Download the new DMG from GitHub, swap the app in place, and reopen it
+                guard let str = body["url"] as? String, let url = URL(string: str), url.scheme == "https" else { throw BridgeError(message: "bad update link") }
+                Updater.install(from: url) { error in
+                    DispatchQueue.main.async {
+                        if let error = error { replyHandler(nil, error) }
+                        else { replyHandler(true, nil); DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { NSApp.terminate(nil) } }
+                    }
+                }
             case "reveal":
                 try fm.createDirectory(at: base, withIntermediateDirectories: true)
                 if let p = body["path"] as? String, let url = try? safeURL(p), fm.fileExists(atPath: url.path) {

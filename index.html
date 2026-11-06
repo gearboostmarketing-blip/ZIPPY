@@ -98,6 +98,11 @@ table.data select{padding:5px 4px}
 .cloudbox .row{gap:8px}
 .role-tag{font-size:11px;font-weight:700;border-radius:8px;padding:1px 7px;background:var(--soft);color:var(--muted);text-transform:capitalize}
 .dlg-err{margin:0;background:var(--bad-bg);color:var(--out);border-radius:6px;padding:8px 10px;font-weight:600;font-size:13px}
+.update{display:flex;align-items:center;gap:12px;background:var(--char);color:var(--char-ink);border-radius:10px;padding:10px 14px;margin-bottom:16px;box-shadow:inset 0 0 0 1px rgba(160,124,255,.5)}
+.update .ico{font-size:20px;color:var(--bolt)}
+.update .btn{background:transparent;color:var(--char-ink);border-color:rgba(255,255,255,.25)}
+.update .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.update .notes{font-size:12.5px;color:var(--char-muted);white-space:pre-line;max-height:120px;overflow:auto;margin-top:6px}
 /* reports */
 .rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
 .rep-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
@@ -221,7 +226,7 @@ body.native .web-only{display:none}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span class="ver">v2.0</span><span id="org-short"></span></div>
+  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span class="ver">v2.1</span><span id="org-short"></span></div>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="import" aria-selected="true">Import</button>
     <button role="tab" data-tab="entries">Log <span class="count" id="c-entries">0</span></button>
@@ -244,6 +249,7 @@ body.native .web-only{display:none}
   <div class="mnav"><button id="m-prev" aria-label="Previous month">‹</button><select id="m-select" aria-label="Month"></select><button id="m-next" aria-label="Next month">›</button></div>
   <span class="hint" id="m-info"></span>
 </div>
+<div id="update-slot"></div>
 <div id="reminder-slot"></div>
 <!-- IMPORT -->
 <section id="tab-import">
@@ -496,6 +502,9 @@ body.native .web-only{display:none}
     <label class="f">Default project<input type="text" data-s="defaultProject"></label>
     <label class="f">Exchange rate: IQD per $1 (also on the Books tab)<input type="text" inputmode="decimal" data-s="rate"></label>
     <div class="full hint">Data is saved automatically. Use a backup file to move work to another computer or keep a record of each month.</div>
+    <h3 class="full set-h">Updates</h3>
+    <div class="full row"><span id="upd-status" class="hint">Zip Receipt v2.1</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
+    <label class="f full">GitHub repository for updates<input type="text" data-s="updateRepo" placeholder="filled in automatically, e.g. yourname/zip-receipt"></label>
 
     <h3 class="full set-h">Signatures</h3>
     <label class="full row" style="gap:8px;font-weight:600"><input type="checkbox" id="sig-on"> Print saved signatures on receipts</label>
@@ -531,7 +540,7 @@ body.native .web-only{display:none}
     <button class="btn" id="backup-load">Open backup file</button>
     <input type="file" id="backup-file" accept=".json" hidden>
     <div class="spacer"></div>
-    <span class="hint">Zip Receipt v2.0</span>
+    <span class="hint">Zip Receipt v2.1</span>
   </div>
 </dialog>
 
@@ -555,7 +564,8 @@ const DEFAULT_SETTINGS = {
   useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:"", me:""
 };
 
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.1";
+const UPDATE_REPO = "__UPDATE_REPO__";   // filled in by the GitHub build, e.g. "you/zip-receipt"
 let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{}, counts:[], monthRates:{}, opening:null, viewMonth:"" };
 const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", rcGroup:"safe", month:"" };
 
@@ -1306,6 +1316,45 @@ async function saveLocation(){
     $("#loc-dlg").close(); await syncNow({render:true}); toast(locEditing?"Renamed.":`${n} added. Add people to it with Add person.`);
   }catch(e){ err(e.message); }
   finally{ btn.disabled=false; btn.textContent="Save"; }
+}
+
+
+/* ---------- updates (GitHub Releases) ---------- */
+let updInfo=null, updPlatform=null;
+function updateRepo(){ const r=(S.settings.updateRepo||"").trim()||(/^__/.test(UPDATE_REPO)?"":UPDATE_REPO); return r.replace(/^https?:\/\/github\.com\//,"").replace(/\/$/,""); }
+function newer(a,b){ const x=String(a).split(".").map(Number), y=String(b).split(".").map(Number); for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0; } return false; }
+async function checkForUpdate(manual){
+  const repo=updateRepo(), st=$("#upd-status");
+  if(!repo){ if(manual&&st) st.textContent="No update source yet. It’s filled in automatically by the GitHub build."; return; }
+  if(NATIVE&&!updPlatform){ try{ updPlatform=(await native({cmd:"info"})).platform; }catch(e){} }
+  try{
+    const r=await cfetch("GET",`https://api.github.com/repos/${repo}/releases/latest`,{Accept:"application/vnd.github+json"});
+    if(r.status===404){ if(manual) toast("No releases found. If the repository is private, updates can’t be downloaded automatically; check GitHub for new versions.",8000); if(st) st.textContent="No public releases found."; return; }
+    if(r.status>=400) throw new Error("GitHub said "+r.status);
+    const rel=JSON.parse(r.text), ver=String(rel.tag_name||"").replace(/^v/i,"");
+    if(st) st.textContent=`You have v${APP_VERSION}. Latest is v${ver}.`;
+    if(!ver||!newer(ver,APP_VERSION)){ updInfo=null; renderUpdate(); if(manual) toast(`Zip Receipt v${APP_VERSION} is up to date.`); return; }
+    const want=updPlatform==="mac"?/\.dmg$/i:updPlatform==="windows"?/setup.*\.exe$/i:null;
+    const asset=want&&(rel.assets||[]).find(a=>want.test(a.name));
+    updInfo={ver,notes:(rel.body||"").trim(),page:rel.html_url,asset:asset?asset.browser_download_url:null};
+    if(manual||S.updSkip!==ver) renderUpdate();
+  }catch(e){ if(manual) toast("Couldn’t check for updates: "+e.message,7000); }
+}
+function renderUpdate(){
+  const slot=$("#update-slot"); if(!slot) return;
+  if(!updInfo){ slot.innerHTML=""; return; }
+  const u=updInfo, canInstall=NATIVE&&u.asset;
+  slot.innerHTML=`<div class="update"><span class="ico">⚡</span><div style="flex:1"><b>Zip Receipt ${esc(u.ver)} is ready</b> <span class="hint" style="color:var(--char-muted)">you have ${esc(APP_VERSION)}</span>
+    <div class="notes" id="upd-notes" hidden>${esc(u.notes.slice(0,1500))||"No notes for this version."}</div></div>
+    ${u.notes?`<button class="btn small" data-upd="notes">What’s new</button>`:""}<button class="btn small" data-upd="later">Later</button>
+    ${canInstall?`<button class="btn small primary" data-upd="install">Update now</button>`:`<button class="btn small primary" data-upd="page">Download</button>`}</div>`;
+}
+async function installUpdate(){
+  const b=$('[data-upd="install"]'); if(b){ b.disabled=true; b.textContent="Downloading…"; }
+  try{ await writeNow(); if(CL.on){ collectLocal(); try{ await pushDirty(); }catch(e){} }
+    toast("Downloading the update. Zip Receipt will close and reopen by itself.",15000);
+    await native({cmd:"update",url:updInfo.asset}); }
+  catch(e){ toast("The update didn’t install: "+(e.message||e)+". You can still download it from GitHub.",9000); if(b){ b.disabled=false; b.textContent="Update now"; } }
 }
 
 /* ---------- import tab ---------- */
@@ -2062,6 +2111,12 @@ function bind(){
   // settings
   const dlg=$("#settings");
   $("#open-settings").addEventListener("click",()=>openSettings());
+  $("#upd-check").addEventListener("click",()=>checkForUpdate(true));
+  $("#update-slot").addEventListener("click",e=>{ const k=e.target.dataset.upd; if(!k) return;
+    if(k==="notes"){ const n=$("#upd-notes"); n.hidden=!n.hidden; }
+    if(k==="later"){ S.updSkip=updInfo.ver; save(); updInfo=null; renderUpdate(); }
+    if(k==="page") window.open(updInfo.page,"_blank");
+    if(k==="install") installUpdate(); });
   $("#pp-add").addEventListener("click",()=>openPerson(null));
   $("#pp-save").addEventListener("click",savePerson);
   $("#loc-save").addEventListener("click",saveLocation);
@@ -2105,7 +2160,9 @@ function bind(){
     catch(e){ toast("That file isn’t a Zip Receipt backup."); } ev.target.value=""; });
 }
 
+function showVersion(){ $$(".ver").forEach(x=>x.textContent="v"+APP_VERSION); const h=$("#upd-status"); if(h&&!/Latest/.test(h.textContent)) h.textContent="Zip Receipt v"+APP_VERSION; $$("#settings .df .hint").forEach(x=>{ if(/^Zip Receipt v/.test(x.textContent)) x.textContent="Zip Receipt v"+APP_VERSION; }); }
 function setupShell(){
+  showVersion();
   // stop a file dropped outside the drop zone from replacing the app
   ["dragover","drop"].forEach(ev=>window.addEventListener(ev,e=>{ if(!(e.target.closest&&e.target.closest("#drop"))) e.preventDefault(); }));
   window.addEventListener("pagehide",()=>window.flushSave());
@@ -2119,6 +2176,7 @@ function setupShell(){
   if(CL.on) loadLocation(S.cloud.locId);
   renderAll(); renderCloudHeader();
   if(S.cloud&&S.cloud.sess){ syncNow({quiet:true}); setInterval(()=>syncNow({quiet:true}),60000); }
+  setTimeout(()=>checkForUpdate(false),4000); setInterval(()=>checkForUpdate(false),12*3600*1000);
 })();
 </script>
 </body>
