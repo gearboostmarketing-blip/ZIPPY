@@ -53,13 +53,13 @@ if [ "$DMG" = 1 ]; then
   mkdir -p "$STAGE"
   cp -R "$APP" "$STAGE/"
   ln -s /Applications "$STAGE/Applications"
-  hdiutil create -volname "Zip Receipt" -srcfolder "$STAGE" -ov -format UDZO "build/Zip-Receipt.dmg" >/dev/null
+  hdiutil create -volname "ZIPPY" -srcfolder "$STAGE" -ov -format UDZO "build/Zip-Receipt.dmg" >/dev/null
   rm -rf "$STAGE"
   echo "Built mac/build/Zip-Receipt.dmg"
 fi
 
 if [ "$INSTALL" = 1 ]; then
-  osascript -e 'quit app "Zip Receipt"' 2>/dev/null || true
+  osascript -e 'quit app "ZIPPY"' 2>/dev/null || true
   rm -rf "/Applications/Zip Receipt.app"
   cp -R "$APP" /Applications/
   echo "Installed to /Applications/Zip Receipt.app"

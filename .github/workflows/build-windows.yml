@@ -67,4 +67,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "$GITHUB_REF_NAME" windows/Output/Zip-Receipt-Setup.exe --clobber \
-            || gh release create "$GITHUB_REF_NAME" windows/Output/Zip-Receipt-Setup.exe --title "Zip Receipt $GITHUB_REF_NAME" --notes "Installers for Mac and Windows."
+            || gh release create "$GITHUB_REF_NAME" windows/Output/Zip-Receipt-Setup.exe --title "ZIPPY $GITHUB_REF_NAME" --notes "Installers for Mac and Windows."

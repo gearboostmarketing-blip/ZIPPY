@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zip Receipt</title>
+<title>ZIPPY</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2324262c'/%3E%3Cpath d='M18 4 7 18h8l-1 10 11-14h-8l1-10z' fill='%23a07cff'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -226,7 +226,7 @@ body.native .web-only{display:none}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span class="ver">v2.1</span><span id="org-short"></span></div>
+  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>ZIPPY</b><span class="ver">v2.2</span><span id="org-short"></span></div>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="import" aria-selected="true">Import</button>
     <button role="tab" data-tab="entries">Log <span class="count" id="c-entries">0</span></button>
@@ -399,7 +399,7 @@ body.native .web-only{display:none}
 <!-- PEOPLE -->
 <section id="tab-people" hidden>
   <div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px">
-    <div><h2>People</h2><p class="sub" style="margin:0">Who can use Zip Receipt, what they can do, and where. Invite links are personal: send each one privately.</p></div>
+    <div><h2>People</h2><p class="sub" style="margin:0">Who can use ZIPPY, what they can do, and where. Invite links are personal: send each one privately.</p></div>
     <button class="btn primary" id="pp-add">Add person</button>
   </div>
   <div id="pp-locs"></div>
@@ -465,7 +465,7 @@ body.native .web-only{display:none}
       <button class="btn primary" id="tg-copy">Copy</button>
     </div>
     <textarea id="tg-out" readonly style="margin-top:12px;min-height:220px"></textarea>
-    <p class="hint" style="margin:6px 0 0">Same line format Zip Receipt imports, so you can paste it straight back in later.</p>
+    <p class="hint" style="margin:6px 0 0">Same line format ZIPPY imports, so you can paste it straight back in later.</p>
   </div>
 </section>
 </main>
@@ -503,7 +503,7 @@ body.native .web-only{display:none}
     <label class="f">Exchange rate: IQD per $1 (also on the Books tab)<input type="text" inputmode="decimal" data-s="rate"></label>
     <div class="full hint">Data is saved automatically. Use a backup file to move work to another computer or keep a record of each month.</div>
     <h3 class="full set-h">Updates</h3>
-    <div class="full row"><span id="upd-status" class="hint">Zip Receipt v2.1</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
+    <div class="full row"><span id="upd-status" class="hint">ZIPPY v2.2</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
     <label class="f full">GitHub repository for updates<input type="text" data-s="updateRepo" placeholder="filled in automatically, e.g. yourname/zip-receipt"></label>
 
     <h3 class="full set-h">Signatures</h3>
@@ -540,7 +540,7 @@ body.native .web-only{display:none}
     <button class="btn" id="backup-load">Open backup file</button>
     <input type="file" id="backup-file" accept=".json" hidden>
     <div class="spacer"></div>
-    <span class="hint">Zip Receipt v2.1</span>
+    <span class="hint">ZIPPY v2.2</span>
   </div>
 </dialog>
 
@@ -564,7 +564,7 @@ const DEFAULT_SETTINGS = {
   useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:"", me:""
 };
 
-const APP_VERSION = "2.1";
+const APP_VERSION = "2.2";
 const UPDATE_REPO = "__UPDATE_REPO__";   // filled in by the GitHub build, e.g. "you/zip-receipt"
 let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{}, counts:[], monthRates:{}, opening:null, viewMonth:"" };
 const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", rcGroup:"safe", month:"" };
@@ -975,7 +975,7 @@ async function sheetCall(params, body){
     if(NATIVE){ try{ text=await native({cmd:"http",url,body:body?JSON.stringify(body):null}); }catch(e2){ throw new Error("Couldn’t reach Google ("+(e2.message||e2)+")."); } }
     else throw new Error("Couldn’t reach Google. Check the internet connection and the sheet link.");
   }
-  let d; try{ d=JSON.parse(text); }catch(e){ throw new Error("That link didn’t answer like the Zip Receipt sheet script. It should end in /exec."); }
+  let d; try{ d=JSON.parse(text); }catch(e){ throw new Error("That link didn’t answer like the ZIPPY sheet script. It should end in /exec."); }
   if(!d.ok) throw new Error(d.error||"The sheet returned an error.");
   return d;
 }
@@ -1297,7 +1297,7 @@ async function savePerson(){
 function showLink(name,role,token){
   const link=makeLink({u:S.cloud.url,k:S.cloud.key,t:token,o:S.cloud.org.name,r:role});
   $("#link-title").textContent=`Invite link for ${name}`; $("#link-text").value=link;
-  $("#link-intro").innerHTML=role==="staff"?`Send this to <b>${esc(name)}</b> privately, for example on WhatsApp. They open it on their phone and they’re in, no password needed.`:`Send this to <b>${esc(name)}</b> privately. They open Zip Receipt, go to <b>Settings → HOH cloud</b>, paste the link, choose a password and click <b>Join with invite</b>. It also works on their phone.`;
+  $("#link-intro").innerHTML=role==="staff"?`Send this to <b>${esc(name)}</b> privately, for example on WhatsApp. They open it on their phone and they’re in, no password needed.`:`Send this to <b>${esc(name)}</b> privately. They open ZIPPY, go to <b>Settings → HOH cloud</b>, paste the link, choose a password and click <b>Join with invite</b>. It also works on their phone.`;
   $("#link-how").textContent=(S.settings.phoneUrl?"":"Tip: set the phone app address in Settings so links open the phone app directly. ")+"The link works once and expires in 30 days. If they lose their phone, make a new device link.";
   $("#link-dlg").showModal(); $("#link-text").select();
 }
@@ -1333,7 +1333,7 @@ async function checkForUpdate(manual){
     if(r.status>=400) throw new Error("GitHub said "+r.status);
     const rel=JSON.parse(r.text), ver=String(rel.tag_name||"").replace(/^v/i,"");
     if(st) st.textContent=`You have v${APP_VERSION}. Latest is v${ver}.`;
-    if(!ver||!newer(ver,APP_VERSION)){ updInfo=null; renderUpdate(); if(manual) toast(`Zip Receipt v${APP_VERSION} is up to date.`); return; }
+    if(!ver||!newer(ver,APP_VERSION)){ updInfo=null; renderUpdate(); if(manual) toast(`ZIPPY v${APP_VERSION} is up to date.`); return; }
     const want=updPlatform==="mac"?/\.dmg$/i:updPlatform==="windows"?/setup.*\.exe$/i:null;
     const asset=want&&(rel.assets||[]).find(a=>want.test(a.name));
     updInfo={ver,notes:(rel.body||"").trim(),page:rel.html_url,asset:asset?asset.browser_download_url:null};
@@ -1344,7 +1344,7 @@ function renderUpdate(){
   const slot=$("#update-slot"); if(!slot) return;
   if(!updInfo){ slot.innerHTML=""; return; }
   const u=updInfo, canInstall=NATIVE&&u.asset;
-  slot.innerHTML=`<div class="update"><span class="ico">⚡</span><div style="flex:1"><b>Zip Receipt ${esc(u.ver)} is ready</b> <span class="hint" style="color:var(--char-muted)">you have ${esc(APP_VERSION)}</span>
+  slot.innerHTML=`<div class="update"><span class="ico">⚡</span><div style="flex:1"><b>ZIPPY ${esc(u.ver)} is ready</b> <span class="hint" style="color:var(--char-muted)">you have ${esc(APP_VERSION)}</span>
     <div class="notes" id="upd-notes" hidden>${esc(u.notes.slice(0,1500))||"No notes for this version."}</div></div>
     ${u.notes?`<button class="btn small" data-upd="notes">What’s new</button>`:""}<button class="btn small" data-upd="later">Later</button>
     ${canInstall?`<button class="btn small primary" data-upd="install">Update now</button>`:`<button class="btn small primary" data-upd="page">Download</button>`}</div>`;
@@ -1352,7 +1352,7 @@ function renderUpdate(){
 async function installUpdate(){
   const b=$('[data-upd="install"]'); if(b){ b.disabled=true; b.textContent="Downloading…"; }
   try{ await writeNow(); if(CL.on){ collectLocal(); try{ await pushDirty(); }catch(e){} }
-    toast("Downloading the update. Zip Receipt will close and reopen by itself.",15000);
+    toast("Downloading the update. ZIPPY will close and reopen by itself.",15000);
     await native({cmd:"update",url:updInfo.asset}); }
   catch(e){ toast("The update didn’t install: "+(e.message||e)+". You can still download it from GitHub.",9000); if(b){ b.disabled=false; b.textContent="Update now"; } }
 }
@@ -1698,7 +1698,7 @@ function renderMine(){
   const p=personMonth(m,ui.person), who=personName(ui.person);
   $("#mine-title").textContent=`Advances · ${who} · ${monthLabel(m)}`;
   const body=$("#mine-body");
-  if(!CL.on&&!myFirst()){ body.innerHTML=`<div class="panel">Add your name in <b>Settings → My name</b> so Zip Receipt can tell which advances are yours.</div>`; renderAllPeople(); return; }
+  if(!CL.on&&!myFirst()){ body.innerHTML=`<div class="panel">Add your name in <b>Settings → My name</b> so ZIPPY can tell which advances are yours.</div>`; renderAllPeople(); return; }
   if(!p){ body.innerHTML=`<div class="panel empty">Nothing yet.</div>`; renderAllPeople(); return; }
   if(p.needRate){ body.innerHTML=`<div class="panel">Enter the exchange rate for ${monthLabel(m)} on the <b>Books</b> tab to see this in dollars.</div>`; renderAllPeople(); return; }
   body.innerHTML=`<div class="cur-card usd-card" style="margin-bottom:16px"><h3><span>${esc(who)} · ${monthLabel(m)}</span><span class="hint">IQD at ${fmtN(p.rate,"USD")} = $1</span></h3>
@@ -2157,10 +2157,10 @@ function bind(){
   $("#backup-load").addEventListener("click",()=>$("#backup-file").click());
   $("#backup-file").addEventListener("change",async ev=>{ const f=ev.target.files[0]; if(!f) return; try{ const d=JSON.parse(await f.text()); if(!Array.isArray(d.entries)) throw 0;
       if(S.entries.length && !confirm("Replace the current work with this backup?")) return; S={...S,...d,settings:{...DEFAULT_SETTINGS,...d.settings}}; save(); dlg.close(); renderAll(); toast("Backup opened."); }
-    catch(e){ toast("That file isn’t a Zip Receipt backup."); } ev.target.value=""; });
+    catch(e){ toast("That file isn’t a ZIPPY backup."); } ev.target.value=""; });
 }
 
-function showVersion(){ $$(".ver").forEach(x=>x.textContent="v"+APP_VERSION); const h=$("#upd-status"); if(h&&!/Latest/.test(h.textContent)) h.textContent="Zip Receipt v"+APP_VERSION; $$("#settings .df .hint").forEach(x=>{ if(/^Zip Receipt v/.test(x.textContent)) x.textContent="Zip Receipt v"+APP_VERSION; }); }
+function showVersion(){ $$(".ver").forEach(x=>x.textContent="v"+APP_VERSION); const h=$("#upd-status"); if(h&&!/Latest/.test(h.textContent)) h.textContent="ZIPPY v"+APP_VERSION; $$("#settings .df .hint").forEach(x=>{ if(/^ZIPPY v/.test(x.textContent)) x.textContent="ZIPPY v"+APP_VERSION; }); }
 function setupShell(){
   showVersion();
   // stop a file dropped outside the drop zone from replacing the app

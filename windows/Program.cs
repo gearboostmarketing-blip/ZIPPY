@@ -47,7 +47,7 @@ sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "Zip Receipt";
+        Text = "ZIPPY";
         ClientSize = new Size(1280, 860);
         MinimumSize = new Size(900, 600);
         StartPosition = FormStartPosition.CenterScreen;
@@ -93,9 +93,9 @@ sealed class MainForm : Form
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                "Zip Receipt couldn't start.\n\n" + ex.Message +
+                "ZIPPY couldn't start.\n\n" + ex.Message +
                 "\n\nIf this mentions WebView2, install the free \"Microsoft Edge WebView2 Runtime\" from microsoft.com and try again.",
-                "Zip Receipt", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                "ZIPPY", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Close();
         }
     }

@@ -1,4 +1,4 @@
-# ⚡ Zip Receipt v2.1
+# ⚡ ZIPPY v2.2
 
 Offline cash books and official org receipts for Hands of Hope (HOH), built from the cash log.
 

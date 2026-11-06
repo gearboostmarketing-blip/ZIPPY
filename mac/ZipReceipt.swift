@@ -15,7 +15,7 @@ enum Updater {
     static func install(from url: URL, done: @escaping (String?) -> Void) {
         let target = Bundle.main.bundlePath
         if target.contains("/AppTranslocation/") || !FileManager.default.isWritableFile(atPath: (target as NSString).deletingLastPathComponent) {
-            done("Move Zip Receipt into your Applications folder first, then try again."); return
+            done("Move ZIPPY into your Applications folder first, then try again."); return
         }
         var request = URLRequest(url: url, timeoutInterval: 600)
         request.setValue("application/octet-stream", forHTTPHeaderField: "Accept")
@@ -36,8 +36,10 @@ enum Updater {
                 attach.arguments = ["attach", dmg.path, "-nobrowse", "-readonly", "-noautoopen", "-mountpoint", mount.path]
                 try attach.run(); attach.waitUntilExit()
                 guard attach.terminationStatus == 0 else { done("Couldn't open the downloaded update."); return }
-                let newApp = mount.appendingPathComponent("Zip Receipt.app")
-                guard fm.fileExists(atPath: newApp.path) else { done("The downloaded update doesn't contain Zip Receipt."); return }
+                let apps = ((try? fm.contentsOfDirectory(atPath: mount.path)) ?? []).filter { $0.hasSuffix(".app") }
+                guard let appName = apps.first(where: { $0 == "ZIPPY.app" }) ?? apps.first(where: { $0 == "Zip Receipt.app" }) ?? apps.first else {
+                    done("The downloaded update doesn't contain the app."); return }
+                let newApp = mount.appendingPathComponent(appName)
                 let pid = ProcessInfo.processInfo.processIdentifier
                 let q = { (p: String) in "'" + p.replacingOccurrences(of: "'", with: "'\\''") + "'" }
                 let script = """
@@ -213,7 +215,7 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
     // MARK: alert / confirm / file picker (WKWebView shows none of these by itself)
     func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
-        let a = NSAlert(); a.messageText = "Zip Receipt"; a.informativeText = message
+        let a = NSAlert(); a.messageText = "ZIPPY"; a.informativeText = message
         a.addButton(withTitle: "OK")
         guard let w = window else { _ = a.runModal(); completionHandler(); return }
         a.beginSheetModal(for: w) { _ in completionHandler() }
@@ -221,7 +223,7 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
 
     func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
-        let a = NSAlert(); a.messageText = "Zip Receipt"; a.informativeText = message
+        let a = NSAlert(); a.messageText = "ZIPPY"; a.informativeText = message
         a.addButton(withTitle: "OK"); a.addButton(withTitle: "Cancel")
         guard let w = window else { completionHandler(a.runModal() == .alertFirstButtonReturn); return }
         a.beginSheetModal(for: w) { r in completionHandler(r == .alertFirstButtonReturn) }
@@ -229,7 +231,7 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
 
     func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?,
                  initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
-        let a = NSAlert(); a.messageText = "Zip Receipt"; a.informativeText = prompt
+        let a = NSAlert(); a.messageText = "ZIPPY"; a.informativeText = prompt
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
         field.stringValue = defaultText ?? ""
         a.accessoryView = field
@@ -288,7 +290,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         window = NSWindow(contentRect: frame, styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
-        window.title = "Zip Receipt"
+        window.title = "ZIPPY"
         window.minSize = NSSize(width: 900, height: 600)
         window.contentView = web
         window.center()
@@ -329,10 +331,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let appItem = NSMenuItem(); main.addItem(appItem)
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "About Zip Receipt", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(withTitle: "About ZIPPY", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Hide Zip Receipt", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        appMenu.addItem(withTitle: "Quit Zip Receipt", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: "Hide ZIPPY", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(withTitle: "Quit ZIPPY", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
 
         let fileItem = NSMenuItem(); main.addItem(fileItem)
