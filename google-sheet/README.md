@@ -15,7 +15,7 @@ The sheet is where phones send expenses. Zip Receipt's **Sync phones** button re
 3. Google will say it *hasn't verified this app*. That's normal for your own scripts. Click **Advanced**, then **Go to … (unsafe)**, then **Allow**.
 4. At the bottom you'll see **Your access code is: XXXXXXXXXX**. Copy it.
 
-This creates an **Expenses** tab in the sheet and a **Zip Receipt Photos** folder in your Drive.
+This creates a **Log** tab and a **Zip Receipt Photos** folder in your Drive. Phones add expenses and safe counts to **Log**, which is kept in date order. Zip Receipt sorts everything into months itself, so the sheet needs no month tabs.
 
 ## 3. Turn it on
 
@@ -39,4 +39,12 @@ This creates an **Expenses** tab in the sheet and a **Zip Receipt Photos** folde
 - **You change `Code.gs`:** use **Deploy → Manage deployments**, click the pencil, choose **Version: New version**, then **Deploy**. The URL stays the same.
 - **A phone is lost, or someone leaves:** run **newAccessCode**, update the code in Zip Receipt, and send everyone a new phone setup link.
 - **Forgot the code:** run **showAccessCode**.
-- **The sheet itself:** you can read it, sort it, or download it as Excel any time. Don't rename the **Expenses** tab or reorder its columns. The **Status** column is free for your own notes.
+- **The sheet itself:** you can read it, sort it, or download it as Excel any time. Don't rename the **Log** tab or reorder its columns. The **Status** column is free for your own notes.
+
+## Updating from an earlier version
+
+If your sheet has an **Expenses** tab or month tabs (**October 2026**, …):
+
+1. In Apps Script, replace everything with the new `Code.gs` and click **Save**.
+2. Run **setup** again. It moves every row into the **Log** tab in date order and removes the old tabs. Your access code stays the same, so phones keep working.
+3. Click **Deploy → Manage deployments**, click the pencil, set **Version** to **New version**, and click **Deploy**. The web app address stays the same.

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Zip Receipt for Windows: a native window (WebView2 / Edge) around ../index.html -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>ZipReceipt</AssemblyName>
+    <RootNamespace>ZipReceipt</RootNamespace>
+    <ApplicationIcon>AppIcon.ico</ApplicationIcon>
+    <Product>Zip Receipt</Product>
+    <Company>Hands of Hope (HOH)</Company>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3296.44" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\index.html" LogicalName="ZipReceipt.index.html" />
+    <EmbeddedResource Include="AppIcon.ico" LogicalName="ZipReceipt.AppIcon.ico" />
+  </ItemGroup>
+</Project>

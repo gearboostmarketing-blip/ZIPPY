@@ -51,7 +51,13 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
                 let url = try safeURL(body["path"] as? String)
                 guard let text = body["text"] as? String else { throw BridgeError(message: "nothing to write") }
                 try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-                try text.write(to: url, atomically: true, encoding: .utf8)
+                if body["base64"] as? Bool == true {
+                    // binary files such as the Excel report
+                    guard let data = Data(base64Encoded: text) else { throw BridgeError(message: "bad file data") }
+                    try data.write(to: url, options: .atomic)
+                } else {
+                    try text.write(to: url, atomically: true, encoding: .utf8)
+                }
                 replyHandler(url.path, nil)
             case "pdf":
                 let url = try safeURL(body["path"] as? String)

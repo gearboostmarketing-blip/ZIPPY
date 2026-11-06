@@ -7,8 +7,12 @@ messages*.html
 *.csv
 exports/
 
-# Mac app build output
+# App build output
 mac/build/
+windows/bin/
+windows/obj/
+windows/publish/
+windows/Output/
 
 .DS_Store
 Thumbs.db

@@ -4,38 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zip Receipt</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232d5aa0'/%3E%3Cpath d='M18 4 7 18h8l-1 10 11-14h-8l1-10z' fill='%23ffc629'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2324262c'/%3E%3Cpath d='M18 4 7 18h8l-1 10 11-14h-8l1-10z' fill='%23a07cff'/%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#eef1f4; --panel:#ffffff; --ink:#1d2733; --muted:#5f6b7a; --line:#d6dce3; --soft:#f5f7f9;
-  --accent:#2d5aa0; --accent-ink:#ffffff; --in:#23784a; --out:#a23a24; --warn:#9a6a00; --warn-bg:#fff4d6;
-  --ok-bg:#e3f2e9; --bad-bg:#fbe5e0; --focus:#f2a900;
+  --bg:#f3f3f6; --panel:#ffffff; --ink:#1f2026; --muted:#676a75; --line:#dcdce3; --soft:#f6f6f9;
+  --accent:#7448f0; --accent-ink:#ffffff; --in:#23784a; --out:#b03a2e; --warn:#8a5d00; --warn-bg:#fff3d6;
+  --ok-bg:#e3f2e9; --bad-bg:#fbe6e2; --focus:#a07cff; --char:#24262c; --char-ink:#f1f1f5; --char-muted:#a3a5b1; --bolt:#a07cff;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#151a20; --panel:#1e252e; --ink:#e6ebf0; --muted:#98a4b3; --line:#323c48; --soft:#252e38;
-    --accent:#6f9ce0; --accent-ink:#0d1520; --in:#6fcf97; --out:#f08a73; --warn:#f2c14e; --warn-bg:#3a3017;
-    --ok-bg:#1c3326; --bad-bg:#3d2420; color-scheme: dark;
+    --bg:#141519; --panel:#1e2025; --ink:#ececf1; --muted:#9b9da9; --line:#30323a; --soft:#25272d;
+    --accent:#a387ff; --accent-ink:#141519; --in:#6fcf97; --out:#f08a73; --warn:#f2c14e; --warn-bg:#3a3017;
+    --ok-bg:#1c3326; --bad-bg:#3d2420; --char:#0f1013; --char-ink:#ececf1; --char-muted:#8f91a0; color-scheme: dark;
   }
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,system-ui,-apple-system,Arial,sans-serif}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:1px}
-header.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 20px;height:56px}
+header.top{position:sticky;top:0;z-index:20;background:var(--char);color:var(--char-ink);border-bottom:1px solid #000;display:flex;align-items:center;gap:18px;padding:0 20px;height:56px}
 .brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
 .brand{align-items:center}
 .brand b{font-size:19px;letter-spacing:-.3px}
-.bolt{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:7px;background:var(--accent)}
-.bolt svg{width:19px;height:19px;fill:#ffc629}
-.brand span{color:var(--muted);font-size:12.5px}
+.bolt{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#35373f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.bolt svg{width:19px;height:19px;fill:var(--bolt)}
+.ver{font-size:11px;font-weight:700;color:var(--bolt);border:1px solid rgba(160,124,255,.45);border-radius:9px;padding:0 6px}
+.brand span{color:var(--char-muted);font-size:12.5px}
 nav.tabs{display:flex;gap:2px;height:100%}
-nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:0 14px;height:100%;cursor:pointer;color:var(--muted);font-weight:600}
-nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
-nav.tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:10px;background:var(--soft);font-size:12px;color:var(--muted)}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:0 14px;height:100%;cursor:pointer;color:var(--char-muted);font-weight:600;position:relative}
+nav.tabs button:hover{color:var(--char-ink)}
+nav.tabs button[aria-selected="true"]{color:var(--char-ink);border-bottom-color:var(--bolt)}
+nav.tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:10px;background:rgba(255,255,255,.1);font-size:12px;color:var(--char-ink)}
+nav.tabs .dot{position:absolute;top:13px;right:4px;width:8px;height:8px;border-radius:50%;background:#ffb020}
+header.top .btn{background:transparent;color:var(--char-ink);border-color:rgba(255,255,255,.22)}
+header.top .btn:hover{border-color:rgba(255,255,255,.5)}
 .spacer{flex:1}
-.saved{color:var(--muted);font-size:12px}
+.saved{color:var(--char-muted);font-size:12px}
 main{max-width:1280px;margin:0 auto;padding:22px 20px 80px}
 section[hidden]{display:none}
 h2{font-size:20px;margin:0 0 4px}
@@ -81,9 +86,19 @@ table.data select{padding:5px 4px}
 .seg button{border:0;background:var(--panel);padding:6px 11px;cursor:pointer;font-weight:600;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .empty{padding:40px;text-align:center;color:var(--muted)}
+/* month bar */
+.monthbar{display:flex;align-items:center;gap:10px;margin:-6px 0 16px;flex-wrap:wrap}
+.monthbar .mnav{display:flex;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.monthbar .mnav button{background:none;border:0;padding:8px 13px;font-size:18px;cursor:pointer;color:var(--muted)}
+.monthbar .mnav button:hover{color:var(--accent)}
+.monthbar select{border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);border-radius:0;font-size:16px;font-weight:700;padding:8px 10px;background:var(--panel);min-width:190px}
+.reminder{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:10px;padding:10px 14px;margin-bottom:16px}
+.reminder b{font-size:14.5px}
+.reminder .ico{font-size:22px}
+.reg td .src-tag{font-size:11px;font-weight:700;border-radius:8px;padding:1px 6px;background:var(--soft);color:var(--muted)}
 /* books */
 .rate-box input{border-color:var(--accent);border-width:2px;font-weight:700}
-.usd-card{grid-column:1/-1;border:2px solid var(--accent)}
+.usd-card{grid-column:1/-1;border:2px solid var(--accent);border-radius:10px}
 .usd-card .big{display:flex;flex-wrap:wrap;gap:28px;margin:4px 0 14px}
 .usd-card .big div{display:flex;flex-direction:column}
 .usd-card .big b{font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
@@ -184,11 +199,11 @@ body.native .web-only{display:none}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span id="org-short"></span></div>
+  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span class="ver">v1.0</span><span id="org-short"></span></div>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="import" aria-selected="true">Import</button>
     <button role="tab" data-tab="entries">Log <span class="count" id="c-entries">0</span></button>
-    <button role="tab" data-tab="books">Books</button>
+    <button role="tab" data-tab="books">Books<span class="dot" id="books-dot" hidden></span></button>
     <button role="tab" data-tab="receipts">Receipts <span class="count" id="c-receipts">0</span></button>
   </nav>
   <div class="spacer"></div>
@@ -198,6 +213,11 @@ body.native .web-only{display:none}
 </header>
 
 <main>
+<div class="monthbar" id="monthbar" hidden>
+  <div class="mnav"><button id="m-prev" aria-label="Previous month">‹</button><select id="m-select" aria-label="Month"></select><button id="m-next" aria-label="Next month">›</button></div>
+  <span class="hint" id="m-info"></span>
+</div>
+<div id="reminder-slot"></div>
 <!-- IMPORT -->
 <section id="tab-import">
   <h2>Import the cash log</h2>
@@ -229,7 +249,7 @@ body.native .web-only{display:none}
   </div>
   <div class="panel" style="margin-top:18px">
     <b>How it works</b>
-    <p class="hint" style="margin:6px 0 0">1. Import the log. 2. Check the <b>Log</b> tab: fix anything highlighted yellow, set each line's type (expense, advance, salary, money in, safe count, or skip) and currency. 3. <b>Books</b> gives you money in / money out per currency to compare with your records. 4. <b>Receipts</b> builds one official receipt per expense; fill in the missing details, mark each reviewed, then print or save as PDF.</p>
+    <p class="hint" style="margin:6px 0 0">1. Import the log, paste lines, or sync phones. Everything lands in the right month by its date, and nothing is ever cleared. 2. Pick a month at the top of <b>Log</b>, <b>Books</b> or <b>Receipts</b>. 3. In the <b>Log</b>, fix anything highlighted yellow and set each line's type and currency. 4. <b>Books</b> shows the month in US dollars, carries the balance on from last month, and keeps the month's safe counts. 5. <b>Receipts</b> builds one official receipt per expense; export the month's report and receipts as PDF or Excel.</p>
   </div>
 </section>
 
@@ -256,23 +276,37 @@ body.native .web-only{display:none}
 <!-- BOOKS -->
 <section id="tab-books" hidden>
   <div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px">
-    <div><h2>Books</h2><p class="sub" style="margin:0">Money in and out per currency. Enter what you actually counted to see the difference.</p></div>
-    <div class="row"><span class="hint web-only">Print → choose “Save as PDF” for a file</span><button class="btn native-only" id="print-report-dlg" hidden>Print…</button><button class="btn primary" id="print-report">Print / PDF report</button></div>
+    <div><h2 id="bk-title">Books</h2><p class="sub" style="margin:0">Everything in US dollars at this month’s exchange rate. The balance carries on from last month.</p></div>
+    <div class="row"><span class="hint web-only">Print → choose “Save as PDF” for a file</span>
+      <button class="btn" id="export-xlsx">Export Excel</button>
+      <button class="btn native-only" id="print-report-dlg" hidden>Print…</button><button class="btn primary" id="print-report">Print / PDF report</button></div>
   </div>
   <div class="panel books-controls">
-    <label class="f rate-box">Exchange rate (IQD per $1)<input type="text" inputmode="decimal" id="bk-rate" placeholder="e.g. 1,450"></label>
-    <label class="f">From<input type="date" id="bk-from"></label>
-    <label class="f">To<input type="date" id="bk-to"></label>
+    <label class="f rate-box">Exchange rate this month (IQD per $1)<input type="text" inputmode="decimal" id="bk-rate" placeholder="e.g. 1,450"></label>
     <label class="f">Source<select id="bk-source"></select></label>
-    <label class="f">Opening IQD<input type="number" id="bk-open-IQD" step="any" placeholder="0"></label>
-    <label class="f">Opening USD<input type="number" id="bk-open-USD" step="any" placeholder="0"></label>
-    <label class="f">Counted IQD<input type="number" id="bk-act-IQD" step="any" placeholder="cash on hand"></label>
-    <label class="f">Counted USD<input type="number" id="bk-act-USD" step="any" placeholder="cash on hand"></label>
+    <div id="bk-opening" style="grid-column:span 2"></div>
   </div>
-  <div class="row" style="margin:-6px 0 14px"><button class="btn small" id="bk-use-count">Use first safe count as opening</button><button class="btn small" id="bk-use-last">Use last safe count as counted</button><span class="hint" id="bk-note"></span></div>
   <div class="cards" id="bk-cards"></div>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin:22px 0 8px">
+    <h3 class="sec" style="margin:0">Safe count register</h3>
+    <button class="btn primary" id="count-add">Record safe count</button>
+  </div>
+  <div id="bk-register"></div>
   <div id="bk-detail"></div>
 </section>
+
+<dialog id="count-dlg" style="width:min(460px,94vw)">
+  <div class="dh"><b id="count-title">Record safe count</b><button class="btn small" data-count="cancel">Cancel</button></div>
+  <div class="db" style="grid-template-columns:1fr 1fr">
+    <label class="f">Date<input type="date" id="c-date"></label>
+    <label class="f">Counted by<input type="text" id="c-who"></label>
+    <label class="f">Dinars in the safe (IQD)<input type="text" inputmode="decimal" id="c-iqd" placeholder="0"></label>
+    <label class="f">Dollars in the safe (USD)<input type="text" inputmode="decimal" id="c-usd" placeholder="0"></label>
+    <label class="f full">Note<input type="text" id="c-note" placeholder="optional"></label>
+    <p class="hint full" style="margin:0">Count all the cash in the safe and enter both currencies, even if one is zero. The count becomes the month’s actual and the starting point for what follows.</p>
+  </div>
+  <div class="df"><button class="btn danger" id="c-delete" hidden>Delete</button><div class="spacer"></div><button class="btn" data-count="cancel">Cancel</button><button class="btn primary" id="c-save">Save count</button></div>
+</dialog>
 
 <!-- RECEIPTS -->
 <section id="tab-receipts" hidden>
@@ -361,7 +395,7 @@ body.native .web-only{display:none}
     <button class="btn" id="backup-load">Open backup file</button>
     <input type="file" id="backup-file" accept=".json" hidden>
     <div class="spacer"></div>
-    <button class="btn danger" id="clear-all">Start new month (clear log)</button>
+    <span class="hint">Zip Receipt v1.0</span>
   </div>
 </dialog>
 
@@ -384,8 +418,9 @@ const DEFAULT_SETTINGS = {
   useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:""
 };
 
-let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{} };
-const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all" };
+const APP_VERSION = "1.0";
+let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{}, counts:[], monthRates:{}, opening:null, viewMonth:"" };
+const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", month:"" };
 
 /* ---------- utils ---------- */
 const $ = (s,r=document)=>r.querySelector(s);
@@ -418,8 +453,8 @@ async function writeNow(){
   const json=JSON.stringify(S);
   if(NATIVE){
     try{ await native({cmd:"write",path:"current.json",text:json});
-      if(S.entries.length) await native({cmd:"write",path:monthKey()+"/backup.json",text:json});
-      $("#saved").textContent=`Saved ${stamp()} · Zip_Receipt/${S.entries.length?monthKey():""}`; }
+      await native({cmd:"write",path:`backups/${today()}.json`,text:json});
+      $("#saved").textContent=`Saved ${stamp()}`; }
     catch(e){ $("#saved").textContent="Couldn’t save to Documents/Zip_Receipt: "+(e.message||e); }
     return;
   }
@@ -428,7 +463,21 @@ async function writeNow(){
 }
 function save(){ clearTimeout(saveTimer); saveTimer=setTimeout(writeNow,300); }
 window.flushSave=()=>{ if(saveTimer) return writeNow(); };
-function applyState(d){ S={...S,...d,settings:{...DEFAULT_SETTINGS,...(d.settings||{})}}; }
+function applyState(d){
+  S={...S,...d,settings:{...DEFAULT_SETTINGS,...(d.settings||{})}};
+  S.counts=S.counts||[]; S.monthRates=S.monthRates||{};
+  // move the old single-period Books inputs into the monthly model (once)
+  const b=S.books||{};
+  if(b.openIQD!=null||b.openUSD!=null||b.actIQD!=null||b.actUSD!=null){
+    const first=S.entries.map(e=>e.date).filter(Boolean).sort()[0]||today();
+    if(!S.opening&&(num(b.openIQD)||num(b.openUSD))) S.opening={month:first.slice(0,7),IQD:num(b.openIQD)||0,USD:num(b.openUSD)||0};
+    if(num(b.actIQD)!=null||num(b.actUSD)!=null){ const last=S.entries.map(e=>e.date).filter(Boolean).sort().pop()||today();
+      S.counts.push({id:uid(),date:last,time:"23:59",iqd:num(b.actIQD),usd:num(b.actUSD),who:"",note:"Counted cash from earlier version",source:"desk"}); }
+    if(num(S.settings.rate)) S.monthRates[first.slice(0,7)]=S.settings.rate;
+    S.books={source:b.source||""};
+  }
+  if(S.viewMonth) ui.month=S.viewMonth;
+}
 async function load(){
   if(NATIVE){ try{ const raw=await native({cmd:"read",path:"current.json"}); if(raw) applyState(JSON.parse(raw)); }
     catch(e){ toast("Couldn’t read saved work: "+(e.message||e),8000); } return; }
@@ -545,7 +594,9 @@ function parsePasted(txt, date, who){
 }
 function addEntries(list, sourceTitle){
   const have=new Set(S.entries.map(e=>e.key)); let added=0, dup=0;
-  list.forEach(e=>{ if(have.has(e.key)){dup++;return;} e.order=S.entries.length; S.entries.push(e); added++; });
+  const months={};
+  list.forEach(e=>{ if(have.has(e.key)){dup++;return;} e.order=S.entries.length; S.entries.push(e); added++; const m=(e.date||"").slice(0,7); months[m]=(months[m]||0)+1; });
+  const top=Object.entries(months).sort((a,b)=>b[1]-a[1])[0]; if(top&&/^\d{4}-\d{2}$/.test(top[0])) { ui.month=top[0]; S.viewMonth=top[0]; }
   if(sourceTitle && !S.sources.includes(sourceTitle)) S.sources.push(sourceTitle);
   save(); renderAll();
   return {added,dup};
@@ -573,12 +624,56 @@ function getRc(e){
 function rcTotal(rc,cur){ return round(rc.items.reduce((s,i)=>s+(num(i.t)||0),0),cur); }
 function rcMissing(rc){ const m=[]; if(!rc.business) m.push("business"); if(!rc.category) m.push("category"); if(!rc.project) m.push("project");
   if(!rc.payer) m.push("payer"); if(!rc.items.some(i=>i.d&&num(i.t))) m.push("item"); return m; }
-function receiptEntries(){ return sorted(S.entries.filter(e=>e.receipt && e.type!=="skip")); }
+function receiptEntries(){ return sorted(S.entries.filter(e=>e.receipt && e.type!=="skip" && inMonth(e.date,ui.month))); }
+
+/* ---------- months ---------- */
+const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const thisMonth=()=>today().slice(0,7);
+function monthLabel(m){ if(!m) return ""; const [y,mm]=m.split("-"); return MONTH_NAMES[+mm-1]+" "+y; }
+function addMonths(m,n){ let [y,mm]=m.split("-").map(Number); mm+=n; while(mm>12){mm-=12;y++;} while(mm<1){mm+=12;y--;} return y+"-"+String(mm).padStart(2,"0"); }
+function inMonth(d,m){ return (d||"").slice(0,7)===m; }
+function dataMonths(){
+  const set=new Set(S.entries.map(e=>(e.date||"").slice(0,7)).concat(S.counts.map(c=>(c.date||"").slice(0,7))).filter(x=>/^\d{4}-\d{2}$/.test(x)));
+  if(S.opening?.month) set.add(S.opening.month);
+  set.add(thisMonth());
+  const list=[...set].sort(); const out=[]; let m=list[0];
+  while(m<=list[list.length-1]){ out.push(m); m=addMonths(m,1); }   // no gaps, so the balance can carry month to month
+  return out;
+}
+function startMonth(){ return S.opening?.month || dataMonths()[0]; }
+function setMonth(m){ ui.month=m; S.viewMonth=m; save(); renderAll(); }
+function renderMonthBar(){
+  const bar=$("#monthbar"); bar.hidden=ui.tab==="import";
+  const months=dataMonths(); if(!ui.month||!months.includes(ui.month)) ui.month=months.includes(S.viewMonth)?S.viewMonth:months[months.length-1];
+  $("#m-select").innerHTML=months.slice().reverse().map(m=>`<option value="${m}"${m===ui.month?" selected":""}>${monthLabel(m)}</option>`).join("");
+  $("#m-prev").disabled=months.indexOf(ui.month)<=0; $("#m-next").disabled=months.indexOf(ui.month)>=months.length-1;
+  const n=S.entries.filter(e=>inMonth(e.date,ui.month)).length;
+  $("#m-info").textContent=`${n} line${n===1?"":"s"} in ${monthLabel(ui.month)}`;
+}
+function rateFor(m){
+  const own=num(S.monthRates[m]); if(own) return {rate:own,from:null};
+  const earlier=Object.keys(S.monthRates).filter(k=>k<m&&num(S.monthRates[k])).sort().pop();
+  if(earlier) return {rate:num(S.monthRates[earlier]),from:earlier};
+  return num(S.settings.rate)?{rate:num(S.settings.rate),from:"settings"}:{rate:null,from:null};
+}
+/* Safe count due? Last 3 days of a month, or the first 5 days of the next, with no count recorded for that month. */
+function countDue(){
+  const t=today(), d=+t.slice(8,10), m=thisMonth(), dim=new Date(+m.slice(0,4),+m.slice(5,7),0).getDate();
+  const has=mm=>allCounts().some(c=>inMonth(c.date,mm));
+  if(d>=dim-2 && !has(m)) return m;
+  const prev=addMonths(m,-1);
+  if(d<=5 && !has(prev) && (S.entries.some(e=>inMonth(e.date,prev))||S.counts.length)) return prev;
+  return null;
+}
+function renderReminder(){
+  const due=countDue(); $("#books-dot").hidden=!due;
+  $("#reminder-slot").innerHTML = due ? `<div class="reminder"><span class="ico">🔒</span><div style="flex:1"><b>Time for the ${monthLabel(due).split(" ")[0]} safe count</b><div class="hint">Count the cash in the safe and record it, so the month’s report shows the actual amount.</div></div><button class="btn primary" data-remind="${due}">Record safe count</button></div>` : "";
+}
 
 /* ---------- render: tabs ---------- */
 function setTab(t){ ui.tab=t; $$("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t)); $$("main section").forEach(s=>s.hidden=s.id!=="tab-"+t); renderTab(); window.scrollTo(0,0); }
-function renderTab(){ ({import:renderImport,entries:renderEntries,books:renderBooks,receipts:renderReceipts})[ui.tab](); }
-function renderCounts(){ $("#c-entries").textContent=S.entries.length; $("#c-receipts").textContent=receiptEntries().length;
+function renderTab(){ renderMonthBar(); renderReminder(); ({import:renderImport,entries:renderEntries,books:renderBooks,receipts:renderReceipts})[ui.tab](); }
+function renderCounts(){ $("#c-entries").textContent=S.entries.filter(e=>inMonth(e.date,ui.month)).length; $("#c-receipts").textContent=receiptEntries().length;
   const n=S.settings.orgName.match(/\(([^)]+)\)/); $("#org-short").textContent=n?n[1]:""; }
 function renderAll(){ renderCounts(); renderTab(); }
 
@@ -757,7 +852,17 @@ function sheetInfo(){
 async function syncFromSheet(btn){
   if(!S.settings.sheetUrl){ openSettings("sheet"); return; }
   const label=btn?.textContent; if(btn){ btn.disabled=true; btn.textContent="Syncing…"; }
-  try{ const d=await sheetCall({action:"list"}); const list=(d.rows||[]).map(rowToEntry).filter(Boolean);
+  try{ const d=await sheetCall({action:"list"});
+    // Remember every phone expense ever pulled in, so "Start new month" doesn't bring old months back
+    const seen=new Set(S.sheetSeen||[]); S.entries.forEach(e=>{ if(String(e.key).startsWith("sheet:")) seen.add(e.key.slice(6)); });
+    const fresh=(d.rows||[]).filter(x=>x.id&&!seen.has(String(x.id)));
+    let nCounts=0;
+    fresh.filter(x=>/count/i.test(x.type||"")).forEach(x=>{ seen.add(String(x.id)); nCounts++;
+      S.counts.push({id:"sheet:"+x.id,date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")?x.date:today(),time:String(x.loggedAt||"").slice(11,16),
+        iqd:num(x.countIQD)??0,usd:num(x.countUSD)??0,who:x.who||"",note:x.note||"",source:"phone"}); });
+    const list=fresh.filter(x=>!/count/i.test(x.type||"")).map(rowToEntry).filter(Boolean);
+    list.forEach(e=>seen.add(e.key.slice(6))); S.sheetSeen=[...seen];
+    if(nCounts) toast(`${nCounts} safe count(s) from phones added to the register.`);
     S.lastSheetSync=new Date().toISOString(); const r=addEntries(list,"Phone log");
     toast(r.added?`${r.added} new expense(s) from phones.`:"No new expenses from phones."); }
   catch(e){ toast(e.message,8000); }
@@ -842,6 +947,7 @@ function renderEntries(){
   renderSourceSelect($("#ent-source"),ui.entSource);
   const q=ui.entSearch.toLowerCase();
   let list=sorted(S.entries).filter(e=>{
+    if(!inMonth(e.date,ui.month)) return false;
     if(ui.entSource && e.source!==ui.entSource) return false;
     if(ui.entFilter==="flag" && !e.flags.length) return false;
     if(ui.entFilter==="rc" && !(e.receipt&&e.type!=="skip")) return false;
@@ -850,7 +956,7 @@ function renderEntries(){
     return true; });
   const t=$("#ent-table");
   if(!S.entries.length){ t.innerHTML=`<tr><td class="empty">No lines yet. Import a chat export first.</td></tr>`; return; }
-  if(!list.length){ t.innerHTML=`<tr><td class="empty">Nothing matches this filter.</td></tr>`; return; }
+  if(!list.length){ t.innerHTML=`<tr><td class="empty">${S.entries.some(e=>inMonth(e.date,ui.month))?"Nothing matches this filter.":"Nothing logged in "+monthLabel(ui.month)+" yet."}</td></tr>`; return; }
   let html=`<thead><tr><th>Date</th><th>Time</th><th>Who</th><th>Description</th><th>Type</th><th>Cur.</th><th class="num">Amount</th><th title="Make a receipt">Receipt</th><th>Original message</th><th></th></tr></thead><tbody>`;
   let lastDay="";
   list.forEach(e=>{
@@ -878,110 +984,199 @@ function entryChanged(e,k,el){
   if(k==="type"){ e.receipt = el.value==="expense"; }
   if(e.rc && (k==="desc"||k==="amount") && e.rc.items.length===1 && !e.rc.reviewed){ e.rc.items[0].d=e.desc; e.rc.items[0].t=e.amount; }
   if(e.rc && k==="date" && !e.rc.reviewed) e.rc.date=e.date;
+  if(k==="date" && !inMonth(e.date,ui.month)){ toast(`Moved to ${monthLabel(e.date.slice(0,7))}.`); save(); renderAll(); return; }
   const hadFlags=e.flags.length; e.flags=[];
   save(); renderCounts();
   const tr=el.closest("tr"); if(hadFlags||k==="type"){ renderEntries(); } else if(tr){ tr.classList.remove("flag"); }
 }
 
-/* ---------- books ---------- */
-function booksData(){
-  const b=S.books; const from=b.from||"", to=b.to||"", src=b.source||"";
-  const list=sorted(S.entries).filter(e=>e.type!=="skip" && (!from||e.date>=from) && (!to||e.date<=to) && (!src||e.source===src));
-  const res={}; CURS.forEach(c=>{
-    const open=num(b["open"+c])||0;
-    const r={cur:c, open, in:0, out:{expense:0,advance:0,salary:0}, counts:[], ledger:[], projects:{}, people:{}};
-    let run=open;
-    list.filter(e=>e.currency===c).forEach(e=>{
-      const t=TYPES[e.type];
-      if(e.type==="count"){ r.counts.push({e, expected:round(run,c), diff:round(e.amount-run,c)}); r.ledger.push({e,run:round(run,c)}); return; }
-      const amt=Math.abs(e.amount);
-      if(t.dir>0){ r.in+=amt; run+=amt; } else { r.out[e.type]+=amt; run-=amt;
-        const p=(e.rc&&e.rc.project)||(e.type==="expense"?"(no project)":TYPES[e.type].label); r.projects[p]=(r.projects[p]||0)+amt;
-        const w=e.who||"(unknown)"; r.people[w]=(r.people[w]||0)+amt; }
-      r.ledger.push({e,run:round(run,c)});
-    });
-    r.totalOut=round(r.out.expense+r.out.advance+r.out.salary,c); r.in=round(r.in,c);
-    r.expected=round(open+r.in-r.totalOut,c);
-    const act=num(b["act"+c]); r.actual=act; r.diff=act==null?null:round(act-r.expected,c);
-    res[c]=r;
-  });
-  return {list,res,from,to,src};
+/* ---------- books (monthly, carried forward) ---------- */
+const usd=v=>(v<0?"−$":"$")+fmtN(Math.abs(v),"USD");
+function allCounts(){
+  // the safe count register, plus "safe count" lines imported from chats (those hold one currency each)
+  return S.counts.map(c=>({...c,kind:"reg"})).concat(S.entries.filter(e=>e.type==="count").map(e=>({
+    id:e.id,date:e.date,time:e.time||"",iqd:e.currency==="IQD"?Math.abs(e.amount):null,usd:e.currency==="USD"?Math.abs(e.amount):null,
+    who:e.who,note:e.desc,source:"log",kind:"log"})));
 }
-function usdTotals(res, used){
-  const rate=num(S.settings.rate); if(!rate||rate<=0) return null;
-  const to=(v,c)=>c==="USD"?v:v/rate;
-  const sum=f=>round(used.reduce((t,c)=>t+to(f(res[c]),c),0),"USD");
-  const u={rate, open:sum(r=>r.open), in:sum(r=>r.in), expense:sum(r=>r.out.expense), advance:sum(r=>r.out.advance),
-    salary:sum(r=>r.out.salary), totalOut:sum(r=>r.totalOut), expected:sum(r=>r.expected)};
-  const counted=used.every(c=>res[c].actual!=null);
-  u.actual=counted?sum(r=>r.actual):null; u.diff=counted?round(u.actual-u.expected,"USD"):null;
-  u.partial=!counted && used.some(c=>res[c].actual!=null);
+/* Walks every month from the starting month on. A safe count resets the running balance to what was actually counted,
+   so each month opens with the real cash carried over from the month before. */
+function engine(){
+  const src=S.books.source||"", first=startMonth(), months=dataMonths().filter(m=>m>=first);
+  const run={IQD:num(S.opening?.IQD)||0, USD:num(S.opening?.USD)||0};
+  const ev=[];
+  S.entries.forEach(e=>{ if(e.type==="skip"||e.type==="count"||!e.date||e.date.slice(0,7)<first||(src&&e.source!==src)) return; ev.push({k:"e",d:e.date,t:e.time||"",o:e.order||0,e}); });
+  allCounts().forEach(c=>{ if(!c.date||c.date.slice(0,7)<first) return; ev.push({k:"c",d:c.date,t:c.time||"",o:0,c}); });
+  ev.sort((a,b)=>a.d.localeCompare(b.d)||a.t.localeCompare(b.t)||(a.k==="c")-(b.k==="c")||a.o-b.o);
+  const res={}; let i=0;
+  months.forEach(m=>{
+    const z=()=>({expense:0,advance:0,salary:0});
+    const r={month:m, open:{...run}, in:{IQD:0,USD:0}, out:{IQD:z(),USD:z()}, counts:[], lines:[]};
+    while(i<ev.length && ev[i].d.slice(0,7)<=m){ const x=ev[i++];
+      if(x.k==="e"){ const e=x.e, c=e.currency, a=Math.abs(e.amount), dir=TYPES[e.type].dir;
+        if(dir>0){ r.in[c]+=a; run[c]+=a; } else if(dir<0){ r.out[c][e.type]+=a; run[c]-=a; }
+        r.lines.push({e,run:{...run}}); }
+      else { const c=x.c, before={...run}, diff={};
+        if(c.iqd!=null){ diff.IQD=c.iqd-run.IQD; run.IQD=c.iqd; }
+        if(c.usd!=null){ diff.USD=c.usd-run.USD; run.USD=c.usd; }
+        r.counts.push({c,before,diff}); r.lines.push({count:c,run:{...run}}); }
+    }
+    r.end={...run}; res[m]=r;
+  });
+  return {res,first};
+}
+function monthBooks(m){
+  const {res,first}=engine(), r=res[m]; if(!r) return {before:true,first};
+  const {rate,from}=rateFor(m);
+  const outT=c=>r.out[c].expense+r.out[c].advance+r.out[c].salary;
+  const usesIQD=[r.open.IQD,r.in.IQD,outT("IQD"),r.end.IQD].some(v=>Math.abs(v)>0.0001)||r.counts.some(x=>x.c.iqd);
+  if(usesIQD&&!rate) return {r,needRate:true,first};
+  const to=(v,c)=>c==="USD"?v:v/rate, both=o=>round(to(o.IQD||0,"IQD")+to(o.USD||0,"USD"),"USD");
+  const u={r,rate,rateFrom:from,first,
+    open:both(r.open), in:both(r.in),
+    expense:both({IQD:r.out.IQD.expense,USD:r.out.USD.expense}), advance:both({IQD:r.out.IQD.advance,USD:r.out.USD.advance}),
+    salary:both({IQD:r.out.IQD.salary,USD:r.out.USD.salary}), totalOut:both({IQD:outT("IQD"),USD:outT("USD")}),
+    expected:both({IQD:r.open.IQD+r.in.IQD-outT("IQD"),USD:r.open.USD+r.in.USD-outT("USD")}), carried:both(r.end),
+    counts:r.counts.map(x=>({...x, counted:both({IQD:x.c.iqd??x.before.IQD,USD:x.c.usd??x.before.USD}), should:both(x.before),
+      diffUSD:round(to(x.diff.IQD||0,"IQD")+to(x.diff.USD||0,"USD"),"USD"), partial:x.c.iqd==null||x.c.usd==null}))};
+  u.last=u.counts[u.counts.length-1]||null;
+  u.diffTotal=round(u.counts.reduce((t,x)=>t+x.diffUSD,0),"USD");
+  u.toUSD=v=>to(v.amount,v.currency);
   return u;
 }
-const usd=v=>(v<0?"−$":"$")+fmtN(Math.abs(v),"USD");
-function toUSD(v,c){ const rate=num(S.settings.rate); return c==="USD"?v:(rate?v/rate:null); }
+function diffBadge(d){ return Math.abs(d)<0.01?`<span class="diff-ok">Balanced</span>`:`<span class="diff-bad">${d>0?"+":"−"}$${fmtN(Math.abs(d),"USD")}</span>`; }
 function renderBooks(){
-  const b=S.books;
-  renderSourceSelect($("#bk-source"),b.source||"");
-  ["from","to"].forEach(k=>$("#bk-"+k).value=b[k]||"");
-  if(document.activeElement!==$("#bk-rate")) $("#bk-rate").value=num(S.settings.rate)?fmtN(num(S.settings.rate),"USD"):"";
-  CURS.forEach(c=>{ $("#bk-open-"+c).value=b["open"+c]??""; $("#bk-act-"+c).value=b["act"+c]??""; });
-  if(!S.entries.length){ $("#bk-cards").innerHTML=`<div class="panel empty">Import a log to see the books.</div>`; $("#bk-detail").innerHTML=""; return; }
-  const {list,res}=booksData();
-  const used=CURS.filter(c=>list.some(e=>e.currency===c)||num(b["open"+c]));
-  $("#bk-cards").innerHTML="";
-  const u=usdTotals(res,used);
-  const usdCard = !u ? `<div class="cur-card usd-card"><h3><span>Total in USD</span></h3><p class="hint" style="margin:0">Enter the exchange rate (IQD per $1) above to see money in, money out and the ending balance in dollars.</p></div>` :
-    `<div class="cur-card usd-card"><h3><span>Total in USD</span><span class="hint">IQD converted at ${fmtN(u.rate,"USD")} IQD = $1</span></h3>
-      <div class="big"><div><span>Money in</span><b class="in">${usd(u.in)}</b></div><div><span>Money out</span><b class="out">${usd(u.totalOut)}</b></div>
-        <div><span>Ending balance</span><b>${usd(u.expected)}</b></div>${u.actual!=null?`<div><span>Counted</span><b>${usd(u.actual)}</b></div><div><span>Difference</span><b>${Math.abs(u.diff)<0.01?`<span class="diff-ok">Balanced</span>`:`<span class="diff-bad">${u.diff>0?"+":"−"}$${fmtN(Math.abs(u.diff),"USD")}</span>`}</b></div>`:""}</div>
-      <div class="usd-cols"><table>
-        <tr><td>Opening balance</td><td class="num">${usd(u.open)}</td></tr>
-        <tr><td class="in">Money in</td><td class="num in">+${usd(u.in)}</td></tr>
-        <tr><td class="out">Money out</td><td class="num out">−${usd(u.totalOut)}</td></tr>
-        <tr class="total"><td>Ending balance (should have)</td><td class="num">${usd(u.expected)}</td></tr></table>
-      <table><tr class="sub"><td>Expenses</td><td class="num">${usd(u.expense)}</td></tr>
-        <tr class="sub"><td>Advances</td><td class="num">${usd(u.advance)}</td></tr>
-        <tr class="sub"><td>Salaries</td><td class="num">${usd(u.salary)}</td></tr>
-        <tr><td>Counted</td><td class="num">${u.actual==null?(u.partial?`<span class="hint">enter counted for every currency</span>`:"–"):usd(u.actual)}</td></tr></table></div></div>`;
-  $("#bk-cards").insertAdjacentHTML("afterbegin",usdCard);
-  // details
-  let d="";
-  const counts=used.flatMap(c=>res[c].counts.map(x=>({...x,c})));
-  if(counts.length){ d+=`<h3 class="sec">Safe counts in the log</h3><div class="tablewrap"><table class="data" style="min-width:600px"><thead><tr><th>Date</th><th>Note</th><th>Cur.</th><th class="num">Counted</th><th class="num">Books said</th><th class="num">Difference</th></tr></thead><tbody>${counts.map(x=>`<tr><td>${esc(x.e.date)}</td><td>${esc(x.e.desc)}</td><td>${x.c}</td><td class="num">${fmtN(x.e.amount,x.c)}</td><td class="num">${fmtN(x.expected,x.c)}</td><td class="num ${Math.abs(x.diff)<1?"":"out"}">${x.diff>0?"+":""}${fmtN(x.diff,x.c)}</td></tr>`).join("")}</tbody></table></div><p class="hint">“Books said” = opening balance plus money in minus money out up to that count. Only meaningful once the opening balance is right.</p>`; }
-  d+=`<h3 class="sec">Ledger</h3><div class="tablewrap"><table class="data" style="min-width:900px"><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th>${used.map(c=>`<th class="num">${c} in</th><th class="num">${c} out</th><th class="num">${c} balance</th>`).join("")}${u?`<th class="num">Balance in USD</th>`:""}</tr></thead><tbody>`;
-  const runs={}; used.forEach(c=>runs[c]=res[c].open);
-  list.forEach(e=>{ if(!used.includes(e.currency)) return; const c=e.currency, dir=TYPES[e.type].dir, a=Math.abs(e.amount);
-    if(dir>0) runs[c]+=a; else if(dir<0) runs[c]-=a;
-    d+=`<tr><td>${esc(e.date)}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td>${used.map(k=>k!==c?`<td></td><td></td><td class="num hint">${fmtN(round(runs[k],k),k)}</td>`:
-      `<td class="num in">${dir>0?fmtN(a,c):""}</td><td class="num out">${dir<0?fmtN(a,c):""}</td><td class="num">${e.type==="count"?`<i>count ${fmtN(e.amount,c)}</i>`:fmtN(round(runs[c],c),c)}</td>`).join("")}${u?`<td class="num"><b>${usd(round(used.reduce((t,k)=>t+(k==="USD"?runs[k]:runs[k]/u.rate),0),"USD"))}</b></td>`:""}</tr>`; });
-  d+=`</tbody></table></div>`;
-  $("#bk-detail").innerHTML=d;
-  const nCount=list.filter(e=>e.type==="count").length;
-  $("#bk-note").textContent = nCount?"":"No safe counts found in this period.";
+  const m=ui.month;
+  $("#bk-title").textContent="Books · "+monthLabel(m);
+  renderSourceSelect($("#bk-source"),S.books.source||"");
+  const rf=rateFor(m);
+  if(document.activeElement!==$("#bk-rate")) $("#bk-rate").value=num(S.monthRates[m])?fmtN(num(S.monthRates[m]),"USD"):"";
+  $("#bk-rate").placeholder=rf.rate?`${fmtN(rf.rate,"USD")} (${rf.from==="settings"?"from Settings":"same as "+monthLabel(rf.from).split(" ")[0]})`:"e.g. 1,450";
+  const u=monthBooks(m), first=startMonth();
+  // opening
+  const op=$("#bk-opening");
+  if(m===first) op.innerHTML=`<div class="row" style="align-items:flex-end"><label class="f">Starting cash · IQD<input type="text" inputmode="decimal" id="bk-open-IQD" value="${S.opening?.IQD!=null?fmtN(S.opening.IQD,"IQD"):""}" placeholder="0"></label><label class="f">Starting cash · USD<input type="text" inputmode="decimal" id="bk-open-USD" value="${S.opening?.USD!=null?fmtN(S.opening.USD,"USD"):""}" placeholder="0"></label><span class="hint" style="max-width:260px">The books start in ${monthLabel(m)}. Later months carry their balance from here.</span></div>`;
+  else if(m<first) op.innerHTML=`<div class="hint">The books start in ${monthLabel(first)}. <button class="btn small" id="bk-start-here">Start the books in ${monthLabel(m)} instead</button></div>`;
+  else op.innerHTML=`<div class="hint" style="padding-top:18px">Opening balance carried from ${monthLabel(addMonths(m,-1))}${u&&!u.needRate&&!u.before?`: <b>${usd(u.open)}</b>`:""}</div>`;
+  if(u.before){ $("#bk-cards").innerHTML=""; $("#bk-register").innerHTML=""; $("#bk-detail").innerHTML=""; return; }
+  if(u.needRate){ $("#bk-cards").innerHTML=`<div class="cur-card usd-card"><h3><span>Total in USD</span></h3><p class="hint" style="margin:0">Enter the exchange rate for ${monthLabel(m)} (IQD per $1) above to see money in, money out and the balance in dollars.</p></div>`; $("#bk-register").innerHTML=registerHTML(m,null); $("#bk-detail").innerHTML=""; return; }
+  const L=u.last;
+  $("#bk-cards").innerHTML=`<div class="cur-card usd-card"><h3><span>Total in USD · ${monthLabel(m)}</span><span class="hint">IQD at ${fmtN(u.rate,"USD")} = $1${u.rateFrom?` (${u.rateFrom==="settings"?"from Settings":"same as "+monthLabel(u.rateFrom).split(" ")[0]})`:""}</span></h3>
+    <div class="big"><div><span>Money in</span><b class="in">${usd(u.in)}</b></div><div><span>Money out</span><b class="out">${usd(u.totalOut)}</b></div>
+      <div><span>Ending balance (should have)</span><b>${usd(u.expected)}</b></div>
+      ${L?`<div><span>Counted in safe · ${L.c.date.slice(8)}/${L.c.date.slice(5,7)}</span><b>${usd(L.counted)}</b></div><div><span>Difference</span><b>${diffBadge(L.diffUSD)}</b></div>`:`<div><span>Counted in safe</span><b class="hint" style="font-size:15px;font-weight:600">No safe count yet</b></div>`}</div>
+    <div class="usd-cols"><table>
+      <tr><td>Opening balance${m===first?" (starting cash)":""}</td><td class="num">${usd(u.open)}</td></tr>
+      <tr><td class="in">Money in</td><td class="num in">+${usd(u.in)}</td></tr>
+      <tr><td class="out">Money out</td><td class="num out">−${usd(u.totalOut)}</td></tr>
+      <tr class="total"><td>Ending balance (should have)</td><td class="num">${usd(u.expected)}</td></tr></table>
+    <table><tr class="sub"><td>Expenses</td><td class="num">${usd(u.expense)}</td></tr>
+      <tr class="sub"><td>Advances</td><td class="num">${usd(u.advance)}</td></tr>
+      <tr class="sub"><td>Salaries</td><td class="num">${usd(u.salary)}</td></tr>
+      <tr><td><b>Carried to ${monthLabel(addMonths(m,1)).split(" ")[0]}</b>${u.counts.length?` <span class="hint">(from the safe count)</span>`:""}</td><td class="num"><b>${usd(u.carried)}</b></td></tr></table></div></div>`;
+  $("#bk-register").innerHTML=registerHTML(m,u);
+  // ledger
+  let d=`<h3 class="sec">Ledger · ${monthLabel(m)}</h3><div class="tablewrap"><table class="data" style="min-width:900px"><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th><th class="num">IQD in</th><th class="num">IQD out</th><th class="num">USD in</th><th class="num">USD out</th><th class="num">Balance in USD</th></tr></thead><tbody>`;
+  d+=`<tr><td colspan="8" class="hint">Opening balance</td><td class="num"><b>${usd(u.open)}</b></td></tr>`;
+  u.r.lines.forEach(l=>{ const bal=usd(round(l.run.USD+l.run.IQD/u.rate,"USD"));
+    if(l.count){ const c=l.count; d+=`<tr><td>${esc(c.date)}</td><td>${esc(c.who||"")}</td><td><i>Safe count${c.note?" – "+esc(c.note):""}</i></td><td>Safe count</td><td class="num" colspan="2">${c.iqd!=null?fmtN(c.iqd,"IQD")+" IQD":""}</td><td class="num" colspan="2">${c.usd!=null?"$"+fmtN(c.usd,"USD"):""}</td><td class="num"><b>${bal}</b></td></tr>`; return; }
+    const e=l.e, dir=TYPES[e.type].dir, a=Math.abs(e.amount), I=e.currency==="IQD";
+    d+=`<tr><td>${esc(e.date)}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td><td class="num in">${I&&dir>0?fmtN(a,"IQD"):""}</td><td class="num out">${I&&dir<0?fmtN(a,"IQD"):""}</td><td class="num in">${!I&&dir>0?fmtN(a,"USD"):""}</td><td class="num out">${!I&&dir<0?fmtN(a,"USD"):""}</td><td class="num"><b>${bal}</b></td></tr>`; });
+  $("#bk-detail").innerHTML=d+`</tbody></table></div>`;
 }
+function registerHTML(m,u){
+  const list=u&&!u.needRate?u.counts:allCounts().filter(c=>inMonth(c.date,m)).map(c=>({c}));
+  if(!list.length) return `<div class="panel hint">No safe count recorded for ${monthLabel(m)}. Count the cash in the safe (usually on the last day of the month) and click <b>Record safe count</b>.</div>`;
+  const srcTag=c=>({phone:"Phone",log:"Log",desk:"Desk"}[c.source]||"Desk");
+  return `<div class="tablewrap reg"><table class="data" style="min-width:820px"><thead><tr><th>Date</th><th>Counted by</th><th class="num">IQD</th><th class="num">USD</th><th class="num">Total in USD</th><th class="num">Should have</th><th class="num">Difference</th><th>Note</th><th>From</th><th></th></tr></thead><tbody>${list.map(x=>{ const c=x.c;
+    return `<tr><td>${esc(c.date)}</td><td>${esc(c.who||"")}</td><td class="num">${c.iqd!=null?fmtN(c.iqd,"IQD"):"–"}</td><td class="num">${c.usd!=null?fmtN(c.usd,"USD"):"–"}</td>
+      <td class="num"><b>${x.counted!=null?usd(x.counted):""}</b>${x.partial?' <span class="hint">(one currency)</span>':""}</td><td class="num">${x.should!=null?usd(x.should):""}</td><td class="num">${x.diffUSD!=null?diffBadge(x.diffUSD):""}</td>
+      <td>${esc(c.note||"")}</td><td><span class="src-tag">${srcTag(c)}</span></td><td>${c.kind==="log"?'<span class="hint">edit in Log</span>':`<button class="btn small" data-count-edit="${esc(c.id)}">Edit</button>`}</td></tr>`; }).join("")}</tbody></table></div>`;
+}
+/* ---------- safe count dialog ---------- */
+let countEditing=null;
+function openCount(id, month){
+  const dlg=$("#count-dlg"); countEditing=id?S.counts.find(c=>c.id===id):null; const c=countEditing;
+  const m=month||ui.month, dim=new Date(+m.slice(0,4),+m.slice(5,7),0).getDate();
+  $("#count-title").textContent=c?"Edit safe count":`Record safe count · ${monthLabel(m)}`;
+  $("#c-date").value=c?c.date:(inMonth(today(),m)?today():`${m}-${String(dim).padStart(2,"0")}`);
+  $("#c-who").value=c?c.who||"":(S.settings.payer||"");
+  $("#c-iqd").value=c&&c.iqd!=null?fmtN(c.iqd,"IQD"):""; $("#c-usd").value=c&&c.usd!=null?fmtN(c.usd,"USD"):""; $("#c-note").value=c?c.note||"":"";
+  $("#c-delete").hidden=!c; dlg.showModal(); setTimeout(()=>$("#c-iqd").focus(),50);
+}
+function saveCount(){
+  const date=$("#c-date").value, iqd=num($("#c-iqd").value), usdv=num($("#c-usd").value);
+  if(!date){ toast("Pick the date of the count."); return; }
+  if(iqd==null&&usdv==null){ toast("Enter what's in the safe (put 0 for a currency that's empty)."); return; }
+  const rec=Object.assign(countEditing||{id:uid(),source:"desk",time:new Date().toTimeString().slice(0,5)},
+    {date, iqd:iqd??0, usd:usdv??0, who:$("#c-who").value.trim(), note:$("#c-note").value.trim()});
+  if(!countEditing) S.counts.push(rec);
+  $("#count-dlg").close(); save(); if(!inMonth(date,ui.month)) ui.month=date.slice(0,7); renderAll(); toast("Safe count saved.");
+}
+/* ---------- monthly report (print / PDF) ---------- */
 function reportHTML(){
-  const {list,res,from,to,src}=booksData(); const st=S.settings;
-  const used=CURS.filter(c=>list.some(e=>e.currency===c)||num(S.books["open"+c]));
-  const period=(from||list[0]?.date||"")+" to "+(to||list[list.length-1]?.date||"");
-  const u=usdTotals(res,used);
-  let h=`<div class="report"><div class="rh"><div><h1>Cash Report</h1><div>${esc(st.orgName)}</div></div><div class="meta">Period: ${esc(period)}<br>${u?`Exchange rate: ${fmtN(u.rate,"USD")} IQD = $1<br>`:""}${src?"Source: "+esc(src)+"<br>":""}Printed ${esc(new Date().toLocaleString("en-GB"))}</div></div>`;
-  if(u) h+=`<table style="width:auto;margin-bottom:14px"><tbody><tr><td style="font-size:11pt;padding:6px 12px">Money in <b>${usd(u.in)}</b></td><td style="font-size:11pt;padding:6px 12px">Money out <b>${usd(u.totalOut)}</b></td><td style="font-size:12pt;padding:6px 12px;background:#e9edf2">Ending balance <b>${usd(u.expected)}</b></td>${u.actual!=null?`<td style="font-size:11pt;padding:6px 12px">Counted <b>${usd(u.actual)}</b> · Difference <b>${u.diff>0?"+":""}${usd(u.diff)}</b></td>`:""}</tr></tbody></table>`;
-  h+=`<h2>Summary</h2><table><thead><tr><th></th>${used.map(c=>`<th class="n">${c}</th>`).join("")}${u?`<th class="n">Total in USD</th>`:""}</tr></thead><tbody>`;
-  const row=(label,f,cls="",uk)=>`<tr class="${cls}"><td>${label}</td>${used.map(c=>`<td class="n">${f(res[c],c)}</td>`).join("")}${u?`<td class="n"><b>${u[uk]==null?"–":(uk==="diff"&&u[uk]>0?"+":"")+usd(u[uk])}</b></td>`:""}</tr>`;
-  h+=row("Opening balance",(r,c)=>fmtN(r.open,c),"","open")+row("Money in",(r,c)=>fmtN(r.in,c),"","in")+row("Expenses",(r,c)=>fmtN(r.out.expense,c),"","expense")+row("Advances",(r,c)=>fmtN(r.out.advance,c),"","advance")+row("Salaries",(r,c)=>fmtN(r.out.salary,c),"","salary")
-    +row("Total money out",(r,c)=>fmtN(r.totalOut,c),"t","totalOut")+row("Ending balance (should have)",(r,c)=>fmtN(r.expected,c),"t","expected")+row("Counted",(r,c)=>r.actual==null?"–":fmtN(r.actual,c),"","actual")+row("Difference",(r,c)=>r.diff==null?"–":(r.diff>0?"+":"")+fmtN(r.diff,c),"t","diff");
+  const m=ui.month, st=S.settings, u=monthBooks(m);
+  if(u.before||u.needRate) return null;
+  const list=u.r.lines.filter(l=>l.e).map(l=>l.e);
+  let h=`<div class="report"><div class="rh"><div><h1>Cash Report · ${monthLabel(m)}</h1><div>${esc(st.orgName)}</div></div><div class="meta">Exchange rate: ${fmtN(u.rate,"USD")} IQD = $1<br>${S.books.source?"Source: "+esc(S.books.source)+"<br>":""}Printed ${esc(new Date().toLocaleString("en-GB"))}</div></div>`;
+  h+=`<table style="width:auto;margin-bottom:14px"><tbody><tr><td style="font-size:11pt;padding:6px 12px">Money in <b>${usd(u.in)}</b></td><td style="font-size:11pt;padding:6px 12px">Money out <b>${usd(u.totalOut)}</b></td><td style="font-size:12pt;padding:6px 12px;background:#efeaff">Ending balance <b>${usd(u.expected)}</b></td>${u.last?`<td style="font-size:11pt;padding:6px 12px">Counted <b>${usd(u.last.counted)}</b> · Difference <b>${u.last.diffUSD>0?"+":""}${usd(u.last.diffUSD)}</b></td>`:""}</tr></tbody></table>`;
+  const row=(l,v,cls="")=>`<tr class="${cls}"><td>${l}</td><td class="n">${v}</td></tr>`;
+  h+=`<h2>Summary (US dollars)</h2><table style="width:60%"><tbody>`+row("Opening balance",usd(u.open))+row("Money in",usd(u.in))+row("Expenses",usd(u.expense))+row("Advances",usd(u.advance))+row("Salaries",usd(u.salary))
+    +row("Total money out",usd(u.totalOut),"t")+row("Ending balance (should have)",usd(u.expected),"t")+row("Counted in safe (actual)",u.last?usd(u.last.counted):"–")+row("Difference",u.last?(u.last.diffUSD>0?"+":"")+usd(u.last.diffUSD):"–","t")
+    +row(`Carried to ${monthLabel(addMonths(m,1))}`,usd(u.carried))+`</tbody></table>`;
+  if(u.counts.length) h+=`<h2>Safe counts</h2><table><thead><tr><th>Date</th><th>Counted by</th><th class="n">IQD</th><th class="n">USD</th><th class="n">Total in USD</th><th class="n">Should have</th><th class="n">Difference</th><th>Note</th></tr></thead><tbody>${u.counts.map(x=>`<tr><td>${x.c.date}</td><td>${esc(x.c.who||"")}</td><td class="n">${x.c.iqd!=null?fmtN(x.c.iqd,"IQD"):"–"}</td><td class="n">${x.c.usd!=null?fmtN(x.c.usd,"USD"):"–"}</td><td class="n">${usd(x.counted)}</td><td class="n">${usd(x.should)}</td><td class="n">${x.diffUSD>0?"+":""}${usd(x.diffUSD)}</td><td>${esc(x.c.note||"")}</td></tr>`).join("")}</tbody></table>`;
+  const proj={}; list.filter(e=>TYPES[e.type].dir<0).forEach(e=>{ const p=(e.rc&&e.rc.project)||(e.type==="expense"?"(no project)":TYPES[e.type].label); proj[p]=(proj[p]||0)+u.toUSD(e); });
+  const pe=Object.entries(proj).sort((a,b)=>b[1]-a[1]);
+  if(pe.length) h+=`<h2>Money out by project</h2><table style="width:60%"><tbody>${pe.map(([k,v])=>row(esc(k),usd(round(v,"USD")))).join("")}${row("Total",usd(u.totalOut),"t")}</tbody></table>`;
+  h+=`<h2>All transactions</h2><table><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th><th class="n">Amount</th><th class="n">USD value</th></tr></thead><tbody>`;
+  list.forEach(e=>{ const dir=TYPES[e.type].dir; h+=`<tr><td>${e.date}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td><td class="n">${fmtM(Math.abs(e.amount),e.currency)}</td><td class="n">${dir<0?"−":"+"}${usd(round(u.toUSD(e),"USD"))}</td></tr>`; });
   h+=`</tbody></table>`;
-  const counts=used.flatMap(c=>res[c].counts.map(x=>({...x,c})));
-  if(counts.length) h+=`<h2>Safe counts</h2><table><thead><tr><th>Date</th><th>Note</th><th>Cur.</th><th class="n">Counted</th><th class="n">Books said</th><th class="n">Difference</th></tr></thead><tbody>${counts.map(x=>`<tr><td>${x.e.date}</td><td>${esc(x.e.desc)}</td><td>${x.c}</td><td class="n">${fmtN(x.e.amount,x.c)}</td><td class="n">${fmtN(x.expected,x.c)}</td><td class="n">${x.diff>0?"+":""}${fmtN(x.diff,x.c)}</td></tr>`).join("")}</tbody></table>`;
-  used.forEach(c=>{ const p=Object.entries(res[c].projects).sort((a,b)=>b[1]-a[1]); if(!p.length) return;
-    h+=`<h2>Money out by project – ${c}</h2><table><tbody>${p.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${fmtN(round(v,c),c)}</td></tr>`).join("")}<tr class="t"><td>Total</td><td class="n">${fmtN(res[c].totalOut,c)}</td></tr></tbody></table>`; });
-  h+=`<h2>All transactions</h2><table><thead><tr><th>Date</th><th>Who</th><th>Description</th><th>Type</th><th>Cur.</th><th class="n">In</th><th class="n">Out</th>${u?`<th class="n">USD value</th>`:""}</tr></thead><tbody>`;
-  list.forEach(e=>{ const dir=TYPES[e.type].dir; h+=`<tr><td>${e.date}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td><td>${e.currency}</td><td class="n">${dir>0?fmtN(Math.abs(e.amount),e.currency):""}</td><td class="n">${dir<0?fmtN(Math.abs(e.amount),e.currency):e.type==="count"?"(count "+fmtN(e.amount,e.currency)+")":""}</td>${u?`<td class="n">${e.type==="count"?"":(TYPES[e.type].dir<0?"−":"")+usd(round(toUSD(Math.abs(e.amount),e.currency),"USD"))}</td>`:""}</tr>`; });
-  h+=`</tbody></table>`;
-  const skipped=S.entries.filter(e=>e.type==="skip").length; if(skipped) h+=`<p style="font-size:9pt">${skipped} line(s) from the chat were marked “skip” and are not counted.</p>`;
-  h+=`<div class="sig"><div>Prepared by</div><div>Checked by</div></div></div>`;
-  return h;
+  const skipped=S.entries.filter(e=>e.type==="skip"&&inMonth(e.date,m)).length; if(skipped) h+=`<p style="font-size:9pt">${skipped} line(s) were marked “skip” and are not counted.</p>`;
+  return h+`<div class="sig"><div>Prepared by</div><div>Checked by</div></div></div>`;
+}
+/* ---------- monthly report (Excel) ---------- */
+function makeXlsx(sheets){
+  const enc=v=>String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const col=i=>{ let s="",n=i+1; while(n){ const r=(n-1)%26; s=String.fromCharCode(65+r)+s; n=Math.floor((n-1)/26); } return s; };
+  const u8=fflate.strToU8, f={};
+  f["[Content_Types].xml"]=u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`);
+  f["_rels/.rels"]=u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+  f["xl/workbook.xml"]=u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${enc(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets></workbook>`);
+  f["xl/_rels/workbook.xml.rels"]=u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  // styles: 0 normal · 1 bold · 2 #,##0 · 3 0.00 · 4 $ · 5 bold $ · 6 title
+  f["xl/styles.xml"]=u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="3"><numFmt numFmtId="164" formatCode="#,##0"/><numFmt numFmtId="165" formatCode="#,##0.00"/><numFmt numFmtId="166" formatCode="&quot;$&quot;#,##0.00;-&quot;$&quot;#,##0.00"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="15"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="7"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="166" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`);
+  sheets.forEach((sh,i)=>{
+    let x=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`;
+    if(sh.widths) x+=`<cols>${sh.widths.map((w,j)=>`<col min="${j+1}" max="${j+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`;
+    x+="<sheetData>";
+    sh.rows.forEach((row,ri)=>{ x+=`<row r="${ri+1}">`; (row||[]).forEach((cell,ci)=>{ if(cell==null||cell==="") return; const c=typeof cell==="object"?cell:{v:cell}; if(c.v==null||c.v==="") return;
+      const ref=col(ci)+(ri+1), st=c.s?` s="${c.s}"`:"";
+      x+= typeof c.v==="number"&&isFinite(c.v) ? `<c r="${ref}"${st}><v>${c.v}</v></c>` : `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${enc(c.v)}</t></is></c>`; });
+      x+="</row>"; });
+    f[`xl/worksheets/sheet${i+1}.xml`]=u8(x+"</sheetData></worksheet>");
+  });
+  return fflate.zipSync(f);
+}
+function reportXlsx(){
+  const m=ui.month, u=monthBooks(m); if(u.before||u.needRate) return null;
+  const $v=v=>({v:round(v,"USD"),s:4}), B=v=>({v,s:1}), list=u.r.lines.filter(l=>l.e);
+  const summary={name:"Summary",widths:[34,18],rows:[[{v:`Cash report · ${monthLabel(m)}`,s:6}],[S.settings.orgName],[`Exchange rate: ${u.rate} IQD = $1`],[],
+    [B("In US dollars"),B("")],["Opening balance",$v(u.open)],["Money in",$v(u.in)],["Expenses",$v(u.expense)],["Advances",$v(u.advance)],["Salaries",$v(u.salary)],
+    [B("Total money out"),{v:round(u.totalOut,"USD"),s:5}],[B("Ending balance (should have)"),{v:round(u.expected,"USD"),s:5}],
+    ["Counted in safe (actual)",u.last?$v(u.last.counted):"–"],[B("Difference"),u.last?{v:u.last.diffUSD,s:5}:"–"],[`Carried to ${monthLabel(addMonths(m,1))}`,$v(u.carried)]]};
+  const tx={name:"Transactions",widths:[12,18,36,12,9,14,13,13,14,16,18,16],rows:[["Date","Who","Description","Type","Currency","Amount","In (USD)","Out (USD)","Balance (USD)","Project","Business","Category"].map(B)]};
+  list.forEach(l=>{ const e=l.e, dir=TYPES[e.type].dir, v=round(u.toUSD(e),"USD"), rc=e.rc||{};
+    tx.rows.push([e.date,e.who,e.desc,TYPES[e.type].label,e.currency,{v:Math.abs(e.amount),s:e.currency==="USD"?3:2},dir>0?$v(v):"",dir<0?$v(v):"",$v(l.run.USD+l.run.IQD/u.rate),rc.project||"",rc.business||"",rc.category||""]); });
+  const cs={name:"Safe counts",widths:[12,18,14,12,14,14,14,30],rows:[["Date","Counted by","IQD","USD","Total (USD)","Should have (USD)","Difference (USD)","Note"].map(B)]};
+  u.counts.forEach(x=>cs.rows.push([x.c.date,x.c.who||"",x.c.iqd!=null?{v:x.c.iqd,s:2}:"",x.c.usd!=null?{v:x.c.usd,s:3}:"",$v(x.counted),$v(x.should),{v:x.diffUSD,s:4},x.c.note||""]));
+  return makeXlsx([summary,tx,cs]);
+}
+async function exportXlsx(){
+  const bytes=reportXlsx(); if(!bytes){ toast("Enter this month’s exchange rate first."); return; }
+  const m=ui.month, name=`Report ${monthLabel(m)}.xlsx`;
+  if(NATIVE){ let bin=""; for(let i=0;i<bytes.length;i+=0x8000) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
+    try{ const path=`${m}/${name}`; await native({cmd:"write",path,text:btoa(bin),base64:true}); toast(`Saved ${name} in Documents/Zip_Receipt/${m}`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); }
+    catch(e){ toast("Couldn’t save the Excel file: "+(e.message||e),8000); } return; }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})); a.download=name; document.body.appendChild(a); a.click(); a.remove();
 }
 
 /* ---------- receipt replica ---------- */
@@ -1032,7 +1227,7 @@ function renderReceipts(){
   const all=receiptEntries(); const done=all.filter(e=>getRc(e).reviewed).length;
   $("#rc-progress").textContent = all.length ? `${all.length} receipts · ${done} reviewed · ${all.filter(e=>rcMissing(getRc(e)).length).length} still missing details` : "";
   const list=all.filter(e=>{ const rc=getRc(e); if(ui.rcFilter==="need") return !rc.reviewed; if(ui.rcFilter==="done") return rc.reviewed; return true; });
-  if(!all.length){ $("#rc-list").innerHTML=`<div class="panel empty">No receipts yet. Lines marked as expenses in the Log get a receipt.</div>`; return; }
+  if(!all.length){ $("#rc-list").innerHTML=`<div class="panel empty">No receipts for ${monthLabel(ui.month)}. Lines marked as expenses in the Log get a receipt.</div>`; return; }
   $("#rc-list").innerHTML = list.map((e,i)=>cardHTML(e,all.indexOf(e)+1)).join("") || `<div class="panel empty">Nothing here.</div>`;
   fitPreviews();
 }
@@ -1080,9 +1275,9 @@ function doPrint(kind, html, mode="pdf"){
 }
 async function nativeOut(kind, mode){
   await new Promise(r=>setTimeout(r,120));
-  const name=`${kind==="receipts"?"Receipts":"Report"} ${monthKey()}.pdf`, path=`${monthKey()}/${name}`;
+  const m=ui.month, name=`${kind==="receipts"?"Receipts":"Report"} ${monthLabel(m)}.pdf`, path=`${m}/${name}`;
   try{ await native({cmd:mode, path, landscape:kind==="receipts"});
-    if(mode==="pdf") toast(`Saved ${name} in Documents/Zip_Receipt/${monthKey()}`,7000,{label:"Show in Finder",fn:()=>native({cmd:"reveal",path})}); }
+    if(mode==="pdf") toast(`Saved ${name} in Documents/Zip_Receipt/${m}`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); }
   catch(e){ const m=String(e.message||e); if(!/cancel/i.test(m)) toast("Couldn’t save the PDF: "+m,8000); }
 }
 function printReceipts(mode="pdf"){
@@ -1115,7 +1310,7 @@ function bind(){
   $("#ent-filter").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; ui.entFilter=b.dataset.f; $$("#ent-filter button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderEntries(); });
   $("#ent-search").addEventListener("input",e=>{ ui.entSearch=e.target.value; renderEntries(); });
   $("#ent-source").addEventListener("change",e=>{ ui.entSource=e.target.value; renderEntries(); });
-  $("#ent-add").addEventListener("click",()=>{ const e=makeEntry({key:"manual:"+uid(),source:"Added by hand",order:S.entries.length,who:S.settings.payer}); S.entries.push(e); save(); ui.entFilter="all"; $$("#ent-filter button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f==="all")); renderAll();
+  $("#ent-add").addEventListener("click",()=>{ const e=makeEntry({key:"manual:"+uid(),source:"Added by hand",order:S.entries.length,who:S.settings.payer,date:inMonth(today(),ui.month)?today():ui.month+"-01"}); S.entries.push(e); save(); ui.entFilter="all"; $$("#ent-filter button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f==="all")); renderAll();
     const tr=$(`tr[data-id="${e.id}"]`); tr?.scrollIntoView({block:"center"}); $(`[data-k="desc"]`,tr)?.focus(); });
   const tbl=$("#ent-table");
   tbl.addEventListener("change",ev=>{ const el=ev.target, k=el.dataset.k; if(!k) return; const e=S.entries.find(x=>x.id===el.closest("tr").dataset.id); if(e) entryChanged(e,k,el); });
@@ -1127,16 +1322,22 @@ function bind(){
   });
 
   // books
-  const bk=(k,v)=>{ S.books[k]=v; save(); renderBooks(); };
-  $("#bk-rate").addEventListener("change",e=>{ const v=num(e.target.value); S.settings.rate=v&&v>0?String(v):""; save(); renderBooks(); });
-  ["from","to"].forEach(k=>$("#bk-"+k).addEventListener("change",e=>bk(k,e.target.value)));
-  $("#bk-source").addEventListener("change",e=>bk("source",e.target.value));
-  CURS.forEach(c=>{ $("#bk-open-"+c).addEventListener("change",e=>bk("open"+c,e.target.value)); $("#bk-act-"+c).addEventListener("change",e=>bk("act"+c,e.target.value)); });
-  $("#bk-use-count").addEventListener("click",()=>{ const {list}=booksData(); let n=0; CURS.forEach(c=>{ const f=list.find(e=>e.type==="count"&&e.currency===c); if(f){ S.books["open"+c]=f.amount; f.type="count"; n++; } });
-    if(!n) toast("No safe counts in this period."); save(); renderBooks(); });
-  $("#bk-use-last").addEventListener("click",()=>{ const {list}=booksData(); let n=0; CURS.forEach(c=>{ const f=[...list].reverse().find(e=>e.type==="count"&&e.currency===c); if(f){ S.books["act"+c]=f.amount; n++; } });
-    if(!n) toast("No safe counts in this period."); save(); renderBooks(); });
-  const rep=mode=>{ if(!S.entries.length){ toast("Nothing to report yet."); return; } doPrint("report",reportHTML(),mode); };
+  $("#bk-rate").addEventListener("change",e=>{ const v=num(e.target.value); if(v&&v>0) S.monthRates[ui.month]=String(v); else delete S.monthRates[ui.month]; save(); renderBooks(); });
+  $("#bk-source").addEventListener("change",e=>{ S.books.source=e.target.value; save(); renderBooks(); });
+  $("#bk-opening").addEventListener("change",e=>{ const id=e.target.id; if(id!=="bk-open-IQD"&&id!=="bk-open-USD") return;
+    S.opening={month:startMonth(),IQD:num($("#bk-open-IQD").value)||0,USD:num($("#bk-open-USD").value)||0}; save(); renderBooks(); });
+  $("#bk-opening").addEventListener("click",e=>{ if(e.target.id!=="bk-start-here") return; S.opening={...(S.opening||{IQD:0,USD:0}),month:ui.month}; save(); renderBooks(); });
+  $("#export-xlsx").addEventListener("click",exportXlsx);
+  $("#count-add").addEventListener("click",()=>openCount(null,ui.month));
+  $("#bk-register").addEventListener("click",e=>{ const id=e.target.dataset.countEdit; if(id) openCount(id); });
+  $("#c-save").addEventListener("click",saveCount);
+  $$("[data-count]").forEach(b=>b.addEventListener("click",()=>$("#count-dlg").close()));
+  $("#c-delete").addEventListener("click",()=>{ if(!countEditing||!confirm("Delete this safe count?")) return; S.counts=S.counts.filter(c=>c!==countEditing); $("#count-dlg").close(); save(); renderAll(); });
+  $("#reminder-slot").addEventListener("click",e=>{ const m=e.target.dataset.remind; if(m) openCount(null,m); });
+  $("#m-prev").addEventListener("click",()=>{ const ms=dataMonths(), i=ms.indexOf(ui.month); if(i>0) setMonth(ms[i-1]); });
+  $("#m-next").addEventListener("click",()=>{ const ms=dataMonths(), i=ms.indexOf(ui.month); if(i<ms.length-1) setMonth(ms[i+1]); });
+  $("#m-select").addEventListener("change",e=>setMonth(e.target.value));
+  const rep=mode=>{ const h=reportHTML(); if(!h){ toast("Enter this month’s exchange rate first."); return; } doPrint("report",h,mode); };
   $("#print-report").addEventListener("click",()=>rep("pdf"));
   $("#print-report-dlg").addEventListener("click",()=>rep("print"));
 
@@ -1178,13 +1379,12 @@ function bind(){
   $$("[data-s]",dlg).forEach(el=>el.addEventListener("input",()=>{ S.settings[el.dataset.s]=el.value; save(); renderCounts(); }));
   dlg.addEventListener("close",()=>renderAll());
   $("#backup-save").addEventListener("click",async()=>{
-    if(NATIVE){ const path=`backups/Zip-Receipt-backup-${today()}.json`; try{ await native({cmd:"write",path,text:JSON.stringify(S,null,1)}); toast("Backup saved in Documents/Zip_Receipt/backups",7000,{label:"Show in Finder",fn:()=>native({cmd:"reveal",path})}); }catch(e){ toast("Couldn’t save backup: "+(e.message||e)); } return; }
+    if(NATIVE){ const path=`backups/Zip-Receipt-backup-${today()}.json`; try{ await native({cmd:"write",path,text:JSON.stringify(S,null,1)}); toast("Backup saved in Documents/Zip_Receipt/backups",7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); }catch(e){ toast("Couldn’t save backup: "+(e.message||e)); } return; }
     const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`Zip-Receipt-backup-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); });
   $("#backup-load").addEventListener("click",()=>$("#backup-file").click());
   $("#backup-file").addEventListener("change",async ev=>{ const f=ev.target.files[0]; if(!f) return; try{ const d=JSON.parse(await f.text()); if(!Array.isArray(d.entries)) throw 0;
       if(S.entries.length && !confirm("Replace the current work with this backup?")) return; S={...S,...d,settings:{...DEFAULT_SETTINGS,...d.settings}}; save(); dlg.close(); renderAll(); toast("Backup opened."); }
     catch(e){ toast("That file isn’t a Zip Receipt backup."); } ev.target.value=""; });
-  $("#clear-all").addEventListener("click",async()=>{ if(!confirm(NATIVE?"Clear the log, books and receipts to start a new month? Settings are kept, and this month's work stays saved in Documents/Zip_Receipt.":"Clear the whole log, books and receipts? Settings are kept. Save a backup first if you need this month's work.")) return; await writeNow(); S.entries=[]; S.sources=[]; S.books={}; save(); dlg.close(); setTab("import"); });
 }
 
 function setupShell(){

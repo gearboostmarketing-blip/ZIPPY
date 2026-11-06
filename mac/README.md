@@ -2,7 +2,7 @@
 
 A small native Mac app that wraps `../index.html` in a window. It does the same things as the browser version, plus:
 
-- **Saves automatically to `Documents/Zip_Receipt`.** `current.json` holds the work you're doing now, and each month gets its own folder (`2026-11/backup.json`).
+- **Saves automatically to `Documents/Zip_Receipt`.** `current.json` holds all your work, with a daily copy in `backups/`. Each month's PDFs and Excel report go in a folder for that month.
 - **Save PDF writes the file directly, with no print dialog.** Files go to `Documents/Zip_Receipt/<month>/Receipts <month>.pdf` and `Report <month>.pdf`. The **Print…** button still opens the normal print window.
 - It has a **Folder** button, and **File → Open Zip_Receipt Folder** (⌘O).
 
@@ -44,15 +44,15 @@ When `index.html` or `ZipReceipt.swift` changes, run `./build.sh --install` agai
 
 In the browser version, use **Settings → Save backup file**. In the Mac app, use **Settings → Open backup file**.
 
-## Native bridge (for the future Windows version)
+## Native bridge (shared with the Windows app)
 
-`index.html` checks for `window.webkit.messageHandlers.zip` (Mac) or `window.zipNative` (any other shell). Each call is `native({cmd, ...})` and returns a Promise. A Windows shell (C# + WebView2) only needs to implement the same seven commands:
+`index.html` checks for `window.webkit.messageHandlers.zip` (Mac) or `window.zipNative` (any other shell). Each call is `native({cmd, ...})` and returns a Promise. The Windows app (`windows/Program.cs`, C# + WebView2) implements the same seven commands:
 
 | cmd | fields | returns |
 |---|---|---|
 | `info` | – | `{folder, platform}` |
 | `read` | `path` | file text, or null if the file doesn't exist |
-| `write` | `path`, `text` | the full path written |
+| `write` | `path`, `text`, `base64` (optional) | the full path written; with `base64: true`, `text` is base64 and is saved as a binary file (the Excel report) |
 | `pdf` | `path`, `landscape` | the full path; prints the page's print layout straight to a PDF |
 | `print` | `landscape` | `true`; shows the system print dialog |
 | `reveal` | `path` (optional) | `true`; shows the file or folder in Finder / Explorer |
