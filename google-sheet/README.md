@@ -15,7 +15,7 @@ The sheet is where phones send expenses. Zip Receipt's **Sync phones** button re
 3. Google will say it *hasn't verified this app*. That's normal for your own scripts. Click **Advanced**, then **Go to … (unsafe)**, then **Allow**.
 4. At the bottom you'll see **Your access code is: XXXXXXXXXX**. Copy it.
 
-This creates a **Log** tab and a **Zip Receipt Photos** folder in your Drive. Phones add expenses and safe counts to **Log**, which is kept in date order. Zip Receipt sorts everything into months itself, so the sheet needs no month tabs.
+This creates a **Log** tab and a **Zip Receipt Photos** folder in your Drive. Phones add expenses (with a **Reimbursable** column) and safe counts to **Log**, which is kept in date order. Zip Receipt sorts everything into months itself, so the sheet needs no month tabs.
 
 ## 3. Turn it on
 

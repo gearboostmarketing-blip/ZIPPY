@@ -20,6 +20,8 @@
   }
 }
 *{box-sizing:border-box}
+[hidden]{display:none !important}
+input[type=checkbox]{accent-color:var(--accent)}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,system-ui,-apple-system,Arial,sans-serif}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:1px}
@@ -32,7 +34,7 @@ header.top{position:sticky;top:0;z-index:20;background:var(--char);color:var(--c
 .ver{font-size:11px;font-weight:700;color:var(--bolt);border:1px solid rgba(160,124,255,.45);border-radius:9px;padding:0 6px}
 .brand span{color:var(--char-muted);font-size:12.5px}
 nav.tabs{display:flex;gap:2px;height:100%}
-nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:0 14px;height:100%;cursor:pointer;color:var(--char-muted);font-weight:600;position:relative}
+nav.tabs button{white-space:nowrap;background:none;border:0;border-bottom:3px solid transparent;padding:0 11px;height:100%;cursor:pointer;color:var(--char-muted);font-weight:600;position:relative}
 nav.tabs button:hover{color:var(--char-ink)}
 nav.tabs button[aria-selected="true"]{color:var(--char-ink);border-bottom-color:var(--bolt)}
 nav.tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:10px;background:rgba(255,255,255,.1);font-size:12px;color:var(--char-ink)}
@@ -40,7 +42,9 @@ nav.tabs .dot{position:absolute;top:13px;right:4px;width:8px;height:8px;border-r
 header.top .btn{background:transparent;color:var(--char-ink);border-color:rgba(255,255,255,.22)}
 header.top .btn:hover{border-color:rgba(255,255,255,.5)}
 .spacer{flex:1}
-.saved{color:var(--char-muted);font-size:12px}
+.saved{color:var(--char-muted);font-size:12px;white-space:nowrap}
+body.cloud .saved{display:none}
+header.top{gap:12px}
 main{max-width:1280px;margin:0 auto;padding:22px 20px 80px}
 section[hidden]{display:none}
 h2{font-size:20px;margin:0 0 4px}
@@ -86,6 +90,23 @@ table.data select{padding:5px 4px}
 .seg button{border:0;background:var(--panel);padding:6px 11px;cursor:pointer;font-weight:600;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .empty{padding:40px;text-align:center;color:var(--muted)}
+/* cloud */
+.locsel{background:#33363d;color:var(--char-ink);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:5px 8px;font-weight:700}
+#cloud-btn .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3ccf7a;margin-right:6px}
+#cloud-btn.off .dot{background:#ffb020}
+.cloudbox{border:2px solid var(--accent);border-radius:10px;padding:14px;display:grid;gap:10px}
+.cloudbox .row{gap:8px}
+.role-tag{font-size:11px;font-weight:700;border-radius:8px;padding:1px 7px;background:var(--soft);color:var(--muted);text-transform:capitalize}
+/* reports */
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.rep-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.rep-card b{font-size:15px}
+.rep-card .row{gap:8px;margin-top:auto}
+.rep-card.all{border:2px solid var(--accent)}
+.mine-big{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.psel{padding:3px 4px;font-size:12.5px;max-width:130px}
+.pchk{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap}
+.pill{font-size:11px;font-weight:700;border-radius:8px;padding:1px 6px;background:color-mix(in srgb,var(--accent) 15%,var(--panel));color:var(--accent)}
 /* month bar */
 .monthbar{display:flex;align-items:center;gap:10px;margin:-6px 0 16px;flex-wrap:wrap}
 .monthbar .mnav{display:flex;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -199,14 +220,19 @@ body.native .web-only{display:none}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span class="ver">v1.0</span><span id="org-short"></span></div>
+  <div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>Zip Receipt</b><span class="ver">v2.0</span><span id="org-short"></span></div>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="import" aria-selected="true">Import</button>
     <button role="tab" data-tab="entries">Log <span class="count" id="c-entries">0</span></button>
     <button role="tab" data-tab="books">Books<span class="dot" id="books-dot" hidden></span></button>
     <button role="tab" data-tab="receipts">Receipts <span class="count" id="c-receipts">0</span></button>
+    <button role="tab" data-tab="mine">Advances</button>
+    <button role="tab" data-tab="reports">Reports</button>
+    <button role="tab" data-tab="people" id="tab-people-btn" hidden>People</button>
   </nav>
   <div class="spacer"></div>
+  <select id="loc-select" class="locsel" hidden aria-label="Location"></select>
+  <button class="btn" id="cloud-btn" hidden></button>
   <span class="saved" id="saved"></span>
   <button class="btn" id="open-folder" hidden>Folder</button>
   <button class="btn" id="open-settings">Settings</button>
@@ -267,6 +293,9 @@ body.native .web-only{display:none}
     <input type="text" id="ent-search" placeholder="Search…" style="width:200px">
     <select id="ent-source"></select>
     <div class="spacer"></div>
+    <button class="btn" id="ent-reimb" title="Mark every line shown as paid from your advance">Mark shown as reimbursable</button>
+    <select id="ent-scope" title="What to export"><option value="month">This month</option><option value="all">All months</option></select>
+    <button class="btn" id="ent-xlsx">Export Excel</button>
     <button class="btn" id="ent-sync" hidden>Sync phones</button>
     <button class="btn" id="ent-add">Add line</button>
   </div>
@@ -313,6 +342,7 @@ body.native .web-only{display:none}
   <div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px">
     <div><h2>Receipts</h2><p class="sub" style="margin:0" id="rc-progress"></p></div>
     <div class="row">
+      <div class="seg" id="rc-group"><button data-g="safe" aria-pressed="true">Safe</button><button data-g="personal" aria-pressed="false">Personal</button></div>
       <div class="seg" id="rc-filter">
         <button data-f="all" aria-pressed="true">All</button>
         <button data-f="need" aria-pressed="false">Needs info</button>
@@ -331,6 +361,95 @@ body.native .web-only{display:none}
     <span class="hint">Only fills blanks; nothing you typed is overwritten.</span>
   </div>
   <div id="rc-list"></div>
+</section>
+
+<!-- ADVANCES -->
+<section id="tab-mine" hidden>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px">
+    <div><h2 id="mine-title">Advances</h2><p class="sub" style="margin:0">Each person’s advances, minus what they spent on HOH from them (expenses marked <b>Reimbursable</b>). Carried month to month.</p></div>
+    <div class="row"><button class="btn" id="adv-give">Give advance</button><button class="btn" id="adv-repay">Repayment</button>
+      <button class="btn" id="mine-xlsx">Export Excel</button><button class="btn native-only" id="mine-print" hidden>Print…</button><button class="btn primary" id="mine-pdf">Print / PDF statement</button></div>
+  </div>
+  <div class="row" style="margin-bottom:14px"><label class="f">Person<select id="adv-person"></select></label><span class="hint" id="adv-note"></span></div>
+  <div id="mine-body"></div>
+  <h3 class="sec">Everyone · <span id="adv-all-month"></span></h3>
+  <div id="adv-all"></div>
+</section>
+
+<dialog id="adv-dlg" style="width:min(480px,94vw)">
+  <div class="dh"><b id="adv-title">Give advance</b><button class="btn small" data-adv="cancel">Cancel</button></div>
+  <div class="db">
+    <label class="f full">Person<select id="ad-person"></select></label>
+    <label class="f full" id="ad-dir-row">What happened<select id="ad-dir"><option value="repay">HOH paid them back (cash out of the safe)</option><option value="refund">They returned advance money (cash into the safe)</option></select></label>
+    <label class="f">Amount<input type="text" inputmode="decimal" id="ad-amount" placeholder="0"></label>
+    <label class="f">Currency<select id="ad-cur"><option>IQD</option><option>USD</option></select></label>
+    <label class="f">Date<input type="date" id="ad-date"></label>
+    <label class="f">Note<input type="text" id="ad-note" placeholder="optional"></label>
+  </div>
+  <div class="df"><button class="btn" data-adv="cancel">Cancel</button><button class="btn primary" id="ad-save">Save</button></div>
+</dialog>
+
+<!-- PEOPLE -->
+<section id="tab-people" hidden>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px">
+    <div><h2>People</h2><p class="sub" style="margin:0">Who can use Zip Receipt, what they can do, and where. Invite links are personal: send each one privately.</p></div>
+    <button class="btn primary" id="pp-add">Add person</button>
+  </div>
+  <div id="pp-locs"></div>
+  <div class="tablewrap" style="margin-top:14px"><table class="data" id="pp-table" style="min-width:820px"></table></div>
+  <div class="panel hint" style="margin-top:14px"><b>Roles.</b> <b>Admin</b>: everything, every location, people, HOH receipt settings. <b>Bookkeeper</b>: books, safe counts, advances and staff for their locations. <b>Staff</b>: phone only; log expenses and see their own advance. <b>Viewer</b>: read-only books for their locations.</div>
+</section>
+
+<dialog id="pp-dlg" style="width:min(520px,94vw)">
+  <div class="dh"><b id="pp-title">Add person</b><button class="btn small" data-pp="cancel">Cancel</button></div>
+  <div class="db">
+    <label class="f full">Name<input type="text" id="pp-name"></label>
+    <label class="f">Role<select id="pp-role"></select></label>
+    <label class="f">Email <span class="hint" style="font-weight:400">(admins, bookkeepers, viewers)</span><input type="text" id="pp-email"></label>
+    <div class="f full">Locations<div id="pp-locboxes" class="row" style="gap:14px;margin-top:4px"></div></div>
+    <label class="full row" style="gap:8px;font-weight:600" id="pp-active-row"><input type="checkbox" id="pp-active" checked> Active (can sign in)</label>
+  </div>
+  <div class="df"><button class="btn" data-pp="cancel">Cancel</button><button class="btn primary" id="pp-save">Save</button></div>
+</dialog>
+
+<dialog id="link-dlg" style="width:min(560px,94vw)">
+  <div class="dh"><b id="link-title">Invite link</b><button class="btn small" data-link="close">Close</button></div>
+  <div class="db" style="grid-template-columns:1fr">
+    <p id="link-intro" style="margin:0"></p>
+    <div class="row"><input type="text" id="link-text" readonly style="flex:1"><button class="btn primary" id="link-copy">Copy</button></div>
+    <p class="hint" id="link-how" style="margin:0"></p>
+  </div>
+</dialog>
+
+<!-- REPORTS -->
+<section id="tab-reports" hidden>
+  <h2 id="rep-title">Reports</h2>
+  <p class="sub">Everything for the month picked above, the safe count register across all months, and lines to paste into Telegram.</p>
+  <div id="rep-overview"></div>
+  <div class="rep-grid" id="rep-month"></div>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin:26px 0 8px">
+    <h3 class="sec" style="margin:0">Safe count register · month by month</h3>
+    <div class="row"><button class="btn" id="reg-xlsx">Export Excel</button><button class="btn primary" id="reg-pdf">Print / PDF register</button></div>
+  </div>
+  <div id="rep-register"></div>
+  <div class="row" style="justify-content:space-between;align-items:flex-end;margin:26px 0 8px">
+    <h3 class="sec" style="margin:0" id="staff-h">Staff advances</h3>
+    <button class="btn" id="staff-xlsx">Export Excel (all staff)</button>
+  </div>
+  <div id="rep-staff"></div>
+  <h3 class="sec" style="margin-top:26px">Copy for Telegram</h3>
+  <div class="panel">
+    <div class="row" style="align-items:flex-end">
+      <label class="f">Period<select id="tg-period"><option value="week">This week</option><option value="lastweek">Last week</option><option value="month" selected>Month picked above</option><option value="custom">Choose dates…</option></select></label>
+      <label class="f tg-custom" hidden>From<input type="date" id="tg-from"></label>
+      <label class="f tg-custom" hidden>To<input type="date" id="tg-to"></label>
+      <label class="f">Which lines<select id="tg-which"><option value="mine">My reimbursable expenses</option><option value="myall">Everything I paid (who = me)</option><option value="expenses">All expenses</option><option value="all">Everything (in and out)</option></select></label>
+      <div class="spacer"></div>
+      <button class="btn primary" id="tg-copy">Copy</button>
+    </div>
+    <textarea id="tg-out" readonly style="margin-top:12px;min-height:220px"></textarea>
+    <p class="hint" style="margin:6px 0 0">Same line format Zip Receipt imports, so you can paste it straight back in later.</p>
+  </div>
 </section>
 </main>
 
@@ -362,6 +481,7 @@ body.native .web-only{display:none}
     <label class="f full">Payer statement ({payer} is replaced with the name)<input type="text" data-s="statement"></label>
     <label class="f">Default payer (if chat has no name)<input type="text" data-s="payer"></label>
     <label class="f">Verified by (second signature)<input type="text" data-s="verifier"></label>
+    <label class="f">My name (for My ledger)<input type="text" data-s="me" placeholder="e.g. Jared Clugston"></label>
     <label class="f">Default project<input type="text" data-s="defaultProject"></label>
     <label class="f">Exchange rate: IQD per $1 (also on the Books tab)<input type="text" inputmode="decimal" data-s="rate"></label>
     <div class="full hint">Data is saved automatically. Use a backup file to move work to another computer or keep a record of each month.</div>
@@ -380,7 +500,11 @@ body.native .web-only{display:none}
       <div class="row"><span class="hint">Sign above with a trackpad, mouse or finger, or upload a photo of a signature on white paper.</span><div class="spacer"></div><button class="btn primary small" id="sig-save">Save signature</button></div>
     </div>
 
-    <h3 class="full set-h">Phones &amp; Google Sheet</h3>
+    <h3 class="full set-h">HOH cloud · logins and locations</h3>
+    <div class="full" id="cloud-box"></div>
+
+    <h3 class="full set-h" id="sheet-h">Phones &amp; Google Sheet (older setup)</h3>
+    <div class="full sheet-only" style="display:contents">
     <label class="f full">Google Sheet link (the web app address ending in /exec)<input type="text" data-s="sheetUrl" placeholder="https://script.google.com/macros/s/…/exec"></label>
     <label class="f">Access code<input type="text" data-s="sheetCode" placeholder="from the sheet’s setup"></label>
     <label class="f">Phone app address<input type="text" data-s="phoneUrl" placeholder="https://…github.io/zip-receipt-phone/"></label>
@@ -389,13 +513,14 @@ body.native .web-only{display:none}
       <div class="row"><input type="text" id="phone-link" readonly style="flex:1"><button class="btn small primary" id="phone-link-copy">Copy</button></div>
       <p class="hint" style="margin:4px 0 0">Send this link privately (it contains the access code). Opening it on a phone sets up the phone app in one tap.</p>
     </div>
+    </div>
   </div>
   <div class="df">
     <button class="btn" id="backup-save">Save backup file</button>
     <button class="btn" id="backup-load">Open backup file</button>
     <input type="file" id="backup-file" accept=".json" hidden>
     <div class="spacer"></div>
-    <span class="hint">Zip Receipt v1.0</span>
+    <span class="hint">Zip Receipt v2.0</span>
   </div>
 </dialog>
 
@@ -408,19 +533,20 @@ const LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOoAAACqCAYAAACjzNMi
 const STORE_KEY = "zip-receipt-v1", OLD_KEY = "ngo-books-v1";
 const TYPES = {
   expense:{label:"Expense",dir:-1}, advance:{label:"Advance",dir:-1}, salary:{label:"Salary",dir:-1},
-  income:{label:"Money in",dir:1}, count:{label:"Safe count",dir:0}, skip:{label:"Skip",dir:0}
+  income:{label:"Money in",dir:1}, repay:{label:"Repayment to staff",dir:-1}, refund:{label:"Advance returned",dir:1},
+  count:{label:"Safe count",dir:0}, skip:{label:"Skip",dir:0}
 };
 const CURS = ["IQD","USD"];
 const DEFAULT_SETTINGS = {
   orgName:"Hands of Hope organization for help, (HOH)", orgEmail:"Email: hohkurdistan@gmail.com",
   receiptTitle:"Org Receipt", statement:"I, {payer}, paid for these items at the specified price.",
   payer:"", verifier:"", defaultCurrency:"IQD", defaultProject:"", rate:"",
-  useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:""
+  useSignatures:true, signatures:{}, sheetUrl:"", sheetCode:"", phoneUrl:"", me:""
 };
 
-const APP_VERSION = "1.0";
+const APP_VERSION = "2.0";
 let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{}, counts:[], monthRates:{}, opening:null, viewMonth:"" };
-const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", month:"" };
+const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", rcGroup:"safe", month:"" };
 
 /* ---------- utils ---------- */
 const $ = (s,r=document)=>r.querySelector(s);
@@ -461,7 +587,7 @@ async function writeNow(){
   try{ localStorage.setItem(STORE_KEY, json); $("#saved").textContent="Saved "+stamp(); }
   catch(e){ $("#saved").textContent="Not saved here – use Settings → Save backup file"; }
 }
-function save(){ clearTimeout(saveTimer); saveTimer=setTimeout(writeNow,300); }
+function save(){ clearTimeout(saveTimer); saveTimer=setTimeout(writeNow,300); if(typeof scheduleSync==="function") scheduleSync(); }
 window.flushSave=()=>{ if(saveTimer) return writeNow(); };
 function applyState(d){
   S={...S,...d,settings:{...DEFAULT_SETTINGS,...(d.settings||{})}};
@@ -624,7 +750,7 @@ function getRc(e){
 function rcTotal(rc,cur){ return round(rc.items.reduce((s,i)=>s+(num(i.t)||0),0),cur); }
 function rcMissing(rc){ const m=[]; if(!rc.business) m.push("business"); if(!rc.category) m.push("category"); if(!rc.project) m.push("project");
   if(!rc.payer) m.push("payer"); if(!rc.items.some(i=>i.d&&num(i.t))) m.push("item"); return m; }
-function receiptEntries(){ return sorted(S.entries.filter(e=>e.receipt && e.type!=="skip" && inMonth(e.date,ui.month))); }
+function receiptEntries(group){ const g=group||ui.rcGroup; return sorted(S.entries.filter(e=>e.receipt && e.type!=="skip" && inMonth(e.date,ui.month) && (g==="personal"?(e.type==="expense"&&!!e.reimb):!(e.type==="expense"&&e.reimb)))); }
 
 /* ---------- months ---------- */
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -643,7 +769,7 @@ function dataMonths(){
 function startMonth(){ return S.opening?.month || dataMonths()[0]; }
 function setMonth(m){ ui.month=m; S.viewMonth=m; save(); renderAll(); }
 function renderMonthBar(){
-  const bar=$("#monthbar"); bar.hidden=ui.tab==="import";
+  const bar=$("#monthbar"); bar.hidden=ui.tab==="import"||ui.tab==="people";
   const months=dataMonths(); if(!ui.month||!months.includes(ui.month)) ui.month=months.includes(S.viewMonth)?S.viewMonth:months[months.length-1];
   $("#m-select").innerHTML=months.slice().reverse().map(m=>`<option value="${m}"${m===ui.month?" selected":""}>${monthLabel(m)}</option>`).join("");
   $("#m-prev").disabled=months.indexOf(ui.month)<=0; $("#m-next").disabled=months.indexOf(ui.month)>=months.length-1;
@@ -672,7 +798,7 @@ function renderReminder(){
 
 /* ---------- render: tabs ---------- */
 function setTab(t){ ui.tab=t; $$("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t)); $$("main section").forEach(s=>s.hidden=s.id!=="tab-"+t); renderTab(); window.scrollTo(0,0); }
-function renderTab(){ renderMonthBar(); renderReminder(); ({import:renderImport,entries:renderEntries,books:renderBooks,receipts:renderReceipts})[ui.tab](); }
+function renderTab(){ renderMonthBar(); renderReminder(); ({import:renderImport,entries:renderEntries,books:renderBooks,receipts:renderReceipts,mine:renderMine,reports:renderReports,people:renderPeople})[ui.tab](); }
 function renderCounts(){ $("#c-entries").textContent=S.entries.filter(e=>inMonth(e.date,ui.month)).length; $("#c-receipts").textContent=receiptEntries().length;
   const n=S.settings.orgName.match(/\(([^)]+)\)/); $("#org-short").textContent=n?n[1]:""; }
 function renderAll(){ renderCounts(); renderTab(); }
@@ -839,6 +965,7 @@ function rowToEntry(x){
     amount:Math.abs(amount), currency:String(x.currency).toUpperCase()==="USD"?"USD":"IQD", type:"expense", receipt:true, flags:[],
     photo:x.photoUrl||"", noShopReceipt:String(x.hasReceipt).toLowerCase()==="no"});
   if(!/^\d{4}-\d{2}-\d{2}$/.test(x.date||"")) e.flags.push("no date from phone");
+  if(x.reimbursable===true||String(x.reimbursable).toLowerCase()==="yes") e.reimb=true;
   const rc=getRc(e); ["business","category","project"].forEach(k=>{ if(x[k]) rc[k]=String(x[k]); });
   if(x.note) rc.note=String(x.note);
   return e;
@@ -906,15 +1033,254 @@ function setupSigPad(){
     if(x1<=x0){ toast("The signature looks empty."); return; }
     const pad=8, w=x1-x0+pad*2, h=y1-y0+pad*2, out=document.createElement("canvas"); out.width=w; out.height=h;
     out.getContext("2d").drawImage(c,x0-pad,y0-pad,w,h,0,0,w,h);
-    S.settings.signatures={...(S.settings.signatures||{}),[name]:out.toDataURL("image/png")}; save(); clear(); $("#sig-name").value=""; renderSigList(); toast(`Signature saved for ${name}.`);
+    S.settings.signatures={...(S.settings.signatures||{}),[name]:out.toDataURL("image/png")}; if(CL.on) S.cloud.settingsTouched=true; save(); clear(); $("#sig-name").value=""; renderSigList(); toast(`Signature saved for ${name}.`);
   });
   $("#sig-list").addEventListener("click",e=>{ const n=e.target.dataset.sigDel; if(n==null) return; if(!confirm(`Remove the signature for ${n}?`)) return; const s2={...S.settings.signatures}; delete s2[n]; S.settings.signatures=s2; save(); renderSigList(); });
   $("#sig-on").addEventListener("change",e=>{ S.settings.useSignatures=e.target.checked; save(); });
 }
 function openSettings(section){
-  const dlg=$("#settings"); $$("[data-s]",dlg).forEach(el=>el.value=S.settings[el.dataset.s]??""); renderSigList(); $("#phone-link-box").hidden=true; $("#sheet-status").textContent="";
+  const dlg=$("#settings"); renderCloud();
+  const shareLock=CL.on&&S.cloud.me.role!=="admin"; $$("[data-s]",dlg).forEach(el=>{ el.disabled=shareLock&&SHARED_SETTINGS.includes(el.dataset.s); }); $$("[data-s]",dlg).forEach(el=>el.value=S.settings[el.dataset.s]??""); renderSigList(); $("#phone-link-box").hidden=true; $("#sheet-status").textContent="";
   dlg.showModal(); if(section==="sheet") setTimeout(()=>$('[data-s="sheetUrl"]').scrollIntoView({block:"center"}),50);
 }
+
+
+/* ---------- HOH cloud (Supabase): logins, locations, sync ---------- */
+const CL={ get on(){ return !!(S.cloud&&S.cloud.sess&&S.cloud.me&&S.cloud.org); } };
+const SHARED_SETTINGS=["orgName","orgEmail","receiptTitle","statement","verifier","signatures","useSignatures","phoneUrl","defaultCurrency"];
+function locName(id){ const l=(S.cloud?.locations||[]).find(x=>x.id===(id||S.cloud?.locId)); return l?l.name:""; }
+function friendly(m){ m=String(m||"");
+  if(/Invalid login credentials/i.test(m)) return "Wrong email or password.";
+  if(/already registered|user_already_exists/i.test(m)) return "That email already has a login. Use Sign in instead.";
+  if(/JWT expired|invalid JWT|refresh token/i.test(m)) return "Please sign in again.";
+  if(/row-level security|permission denied/i.test(m)) return "You don’t have permission to do that.";
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return "Can’t reach the HOH cloud. Check the internet connection.";
+  return m; }
+async function cfetch(method,url,headers,body){
+  try{ const r=await fetch(url,{method,headers,body}); return {status:r.status,text:await r.text()}; }
+  catch(e){
+    if(NATIVE){ const r=await native({cmd:"http",url,method,headers,body,full:true}); return typeof r==="string"?{status:200,text:r}:r; }
+    throw new Error("Can’t reach the HOH cloud. Check the internet connection."); }
+}
+function parse(t){ try{ return t?JSON.parse(t):null; }catch(e){ return t; } }
+async function authCall(path,body){
+  const c=S.cloud, r=await cfetch("POST",c.url.replace(/\/$/,"")+"/auth/v1/"+path,{apikey:c.key,"Content-Type":"application/json"},JSON.stringify(body));
+  const d=parse(r.text);
+  if(r.status>=400) throw new Error(friendly(d&&(d.error_description||d.msg||d.message||d.error)||("Sign-in failed ("+r.status+")")));
+  if(!d||!d.access_token) throw new Error("Your login needs its email confirmed first. Ask your admin to turn off “Confirm email” in Supabase, or confirm the email and sign in.");
+  c.sess={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:d.expires_at||Math.floor(Date.now()/1000)+(d.expires_in||3600),user_id:d.user&&d.user.id};
+  return d;
+}
+async function ensureToken(){
+  const c=S.cloud; if(!c||!c.sess) throw new Error("Please sign in.");
+  if(c.sess.expires_at-Math.floor(Date.now()/1000)>90) return;
+  try{ await authCall("token?grant_type=refresh_token",{refresh_token:c.sess.refresh_token}); save(); }
+  catch(e){ c.sess=null; save(); renderCloud(); throw new Error("Please sign in again."); }
+}
+async function sb(method,path,body,prefer){
+  const c=S.cloud; await ensureToken();
+  const h={apikey:c.key,Authorization:"Bearer "+c.sess.access_token}; if(body!==undefined) h["Content-Type"]="application/json"; if(prefer) h.Prefer=prefer;
+  const r=await cfetch(method,c.url.replace(/\/$/,"")+path,h,body!==undefined?JSON.stringify(body):undefined), d=parse(r.text);
+  if(r.status>=400) throw new Error(friendly(d&&(d.message||d.msg||d.error_description||d.error)||("Error "+r.status)));
+  return d;
+}
+const rpc=(fn,args)=>sb("POST","/rest/v1/rpc/"+fn,args||{});
+function parseLink(text){
+  const m=String(text||"").match(/(?:join|org)=([A-Za-z0-9+/_=-]+)/); if(!m) return null;
+  try{ return JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g,"+").replace(/_/g,"/"))))); }catch(e){ return null; }
+}
+function makeLink(obj){ const b64=btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/=+$/,"").replace(/\+/g,"-").replace(/\//g,"_");
+  const base=(S.settings.phoneUrl||"").trim().replace(/#.*$/,"")||"https://zipreceipt.app/"; return base+"#join="+b64; }
+function applyWho(w){
+  const c=S.cloud;
+  if(!w||!w.member){ const name=c.org?.name||"the organisation"; c.me=null; c.sess=null; save(); renderCloud(); toast(`Your login is no longer active in ${name}. Ask an admin.`,8000); return false; }
+  c.me=w.member; c.org=w.org; c.locations=w.locations||[]; c.people=w.people||[];
+  if(!c.locId||!c.locations.some(l=>l.id===c.locId)) c.locId=c.locations[0]?.id||null;
+  const shared=(w.org&&w.org.settings)||{}; SHARED_SETTINGS.forEach(k=>{ if(shared[k]!==undefined) S.settings[k]=shared[k]; });
+  S.settings.me=w.member.name; c.orgSettingsHash=JSON.stringify(sharedSettings());
+  return true;
+}
+function sharedSettings(){ const o={}; SHARED_SETTINGS.forEach(k=>o[k]=S.settings[k]); return o; }
+/* Local view of one location <-> cloud records */
+function collectLocal(){
+  const c=S.cloud; if(!CL.on||!c.locId) return; const loc=c.locId; c.recs=c.recs||{}; c.synced=c.synced||{}; c.dirty=c.dirty||{};
+  const seen=new Set();
+  const put=(id,kind,data,person)=>{ seen.add(id);
+    const h=JSON.stringify([kind,person||null,data]);
+    const r=c.recs[id]&&c.recs[id].location_id===loc?c.recs[id]:{id,org_id:c.org.id,location_id:loc};
+    Object.assign(r,{kind,person_id:person||null,data,deleted:false}); c.recs[id]=r;
+    if(c.synced[id]!==h) c.dirty[id]=1; };
+  S.entries.forEach(e=>{ const p=personOf(e); put(e.id,"entry",e,p&&p!=="me"?p:null); });
+  S.counts.forEach(x=>put(x.id,"count",x,null));
+  put("meta:"+loc,"meta",{monthRates:S.monthRates||{},opening:S.opening||null,source:(S.books&&S.books.source)||""},null);
+  Object.values(c.recs).forEach(r=>{ if(r.location_id===loc&&!r.deleted&&r.kind!=="meta"&&!seen.has(r.id)){ r.deleted=true; c.dirty[r.id]=1; } });
+}
+function loadLocation(loc){
+  const c=S.cloud, recs=Object.values(c.recs||{}).filter(r=>r.location_id===loc&&!r.deleted);
+  S.entries=recs.filter(r=>r.kind==="entry").map(r=>r.data); S.counts=recs.filter(r=>r.kind==="count").map(r=>r.data);
+  S.entries.forEach((e,i)=>{ if(!e.flags) e.flags=[]; if(e.order==null) e.order=i; if(!e.id) e.id=uid(); });
+  const meta=c.recs&&c.recs["meta:"+loc]; S.monthRates=(meta&&meta.data.monthRates)||{}; S.opening=(meta&&meta.data.opening)||null; S.books={source:(meta&&meta.data.source)||""};
+}
+function withLocation(loc,fn){
+  if(!CL.on||loc===S.cloud.locId) return fn();
+  collectLocal(); const keep=S.cloud.locId;
+  try{ loadLocation(loc); S.cloud.locId=loc; return fn(); } finally { S.cloud.locId=keep; loadLocation(keep); }
+}
+async function pushDirty(){
+  const c=S.cloud, ids=Object.keys(c.dirty||{}); let n=0;
+  for(let i=0;i<ids.length;i+=200){
+    const batch=ids.slice(i,i+200).map(id=>c.recs[id]).filter(Boolean).map(r=>({id:r.id,org_id:r.org_id,location_id:r.location_id,kind:r.kind,person_id:r.person_id||null,data:r.data,deleted:!!r.deleted}));
+    if(!batch.length) continue;
+    await sb("POST","/rest/v1/records?on_conflict=id",batch,"resolution=merge-duplicates,return=minimal");
+    batch.forEach(r=>{ c.synced[r.id]=JSON.stringify([r.kind,r.person_id||null,r.data]); delete c.dirty[r.id]; }); n+=batch.length;
+  }
+  ids.forEach(id=>{ if(!c.recs[id]) delete c.dirty[id]; });
+  return n;
+}
+async function pullAll(){
+  const c=S.cloud; let since=c.lastPull||"1970-01-01T00:00:00Z", changed=0;
+  for(;;){
+    const rows=await sb("GET",`/rest/v1/records?select=*&updated_at=gte.${encodeURIComponent(since)}&order=updated_at.asc,id.asc&limit=1000`);
+    rows.forEach(r=>{ if(c.dirty[r.id]) return; const h=JSON.stringify([r.kind,r.person_id||null,r.data]);
+      if(c.synced[r.id]!==h||!c.recs[r.id]||c.recs[r.id].deleted!==r.deleted){ changed++; c.recs[r.id]=r; } c.synced[r.id]=h; });
+    if(rows.length) since=rows[rows.length-1].updated_at; if(rows.length<1000) break;
+  }
+  c.lastPull=since; return changed;
+}
+let syncBusy=false, syncTimer=null;
+function setSyncLabel(t,off){ const b=$("#cloud-btn"); if(!b) return; b.classList.toggle("off",!!off); b.innerHTML=`<span class="dot"></span>${esc(t)}`; }
+async function syncNow(opts={}){
+  if(!CL.on||syncBusy) return; syncBusy=true; setSyncLabel("Syncing…");
+  try{
+    collectLocal(); await pushDirty();
+    if(!applyWho(await rpc("whoami"))) return;
+    if(S.cloud.me.role==="admin" && JSON.stringify(sharedSettings())!==S.cloud.pushedSettings && S.cloud.settingsTouched){
+      await sb("PATCH",`/rest/v1/orgs?id=eq.${S.cloud.org.id}`,{settings:{...(S.cloud.org.settings||{}),...sharedSettings()}},"return=minimal");
+      S.cloud.pushedSettings=JSON.stringify(sharedSettings()); S.cloud.settingsTouched=false; }
+    const changed=await pullAll(); loadLocation(S.cloud.locId);
+    S.cloud.lastSync=new Date().toISOString(); writeNow();
+    const typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&!document.activeElement.closest("dialog");
+    if(changed||opts.render) { if(!typing||opts.render) renderAll(); }
+    renderCloudHeader(); setSyncLabel(`${locName()} · synced ${stamp()}`);
+  }catch(e){ setSyncLabel(`${locName()||"HOH"} · offline`,true); if(!opts.quiet) toast(e.message,7000); }
+  finally{ syncBusy=false; }
+}
+function scheduleSync(){ if(!CL.on) return; clearTimeout(syncTimer); syncTimer=setTimeout(()=>syncNow({quiet:true}),2500); }
+function renderCloudHeader(){
+  const on=CL.on, b=$("#cloud-btn"), sel=$("#loc-select"); document.body.classList.toggle("cloud",on);
+  b.hidden=!(S.cloud&&S.cloud.url); if(!on&&S.cloud&&S.cloud.url) setSyncLabel("Sign in",true);
+  const locs=on?S.cloud.locations:[]; sel.hidden=!(on&&locs.length>1);
+  if(on) sel.innerHTML=locs.map(l=>`<option value="${l.id}"${l.id===S.cloud.locId?" selected":""}>${esc(l.name)}</option>`).join("");
+  $("#tab-people-btn").hidden=!(on&&["admin","bookkeeper"].includes(S.cloud.me.role));
+  $("#sheet-h").hidden=on; $$(".sheet-only").forEach(x=>x.hidden=on);
+}
+function switchLocation(id){ if(!CL.on||id===S.cloud.locId) return; collectLocal(); S.cloud.locId=id; loadLocation(id); save(); renderAll(); renderCloudHeader(); setSyncLabel(`${locName()} · synced ${stamp()}`); }
+/* settings → HOH cloud box */
+function renderCloud(){
+  const box=$("#cloud-box"); if(!box) return; const c=S.cloud||{};
+  if(CL.on){ const me=c.me;
+    box.innerHTML=`<div class="cloudbox"><div><b>${esc(c.org.name)}</b> · signed in as ${esc(me.name)} <span class="role-tag">${esc(me.role)}</span></div>
+      <div class="hint">Location: <b>${esc(locName())}</b>${c.locations.length>1?" (switch at the top of the window)":""}. Last synced ${c.lastSync?new Date(c.lastSync).toLocaleString([], {dateStyle:"medium",timeStyle:"short"}):"never"}.</div>
+      <div class="row"><button class="btn primary" id="cl-sync">Sync now</button><button class="btn" id="cl-signout">Sign out</button></div>
+      ${me.role==="admin"?`<div class="hint">As an admin, the receipt wording, signatures, currency and phone app address you set here are shared with every location.</div>`:`<div class="hint">Receipt wording and signatures come from your organisation’s admins.</div>`}</div>`;
+    return; }
+  const signin=c.url&&!c.sess;
+  box.innerHTML=`<div class="cloudbox">
+    <div class="hint">Use this to share HOH’s books between locations and phones with proper logins. Open the invite link your admin sent you, or (first time only, for the HOH admin) create the organisation.</div>
+    <label class="f">Invite link (or your organisation’s sign-in link)<input type="text" id="cl-link" placeholder="https://…#join=…"></label>
+    <div class="row"><label class="f" style="flex:1">Email<input type="text" id="cl-email" autocomplete="username" value="${esc(c.email||"")}"></label><label class="f" style="flex:1">Password<input type="password" id="cl-pw" autocomplete="current-password"></label></div>
+    <div class="row"><button class="btn primary" id="cl-join">Join with invite</button><button class="btn" id="cl-signin">Sign in</button><span class="hint">New to HOH cloud? <a href="#" id="cl-show-create">Create the organisation</a></span></div>
+    <div id="cl-create" hidden style="display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px">
+      <div class="hint">Only once, by the HOH admin. Needs the Project URL and anon key from your Supabase project (see <b>supabase/README.md</b>).</div>
+      <label class="f">Supabase project URL<input type="text" id="cl-url" placeholder="https://xxxx.supabase.co" value="${esc(c.url||"")}"></label>
+      <label class="f">Supabase publishable (anon) key<input type="text" id="cl-key" value="${esc(c.key||"")}"></label>
+      <div class="row"><label class="f" style="flex:1">Organisation name<input type="text" id="cl-org" value="${esc(S.settings.orgName||"")}"></label><label class="f" style="flex:1">Your name<input type="text" id="cl-name" value="${esc(S.settings.me||S.settings.payer||"")}"></label><label class="f" style="flex:1">First location<input type="text" id="cl-loc" placeholder="e.g. Erbil"></label></div>
+      <div class="row"><button class="btn primary" id="cl-create-go">Create organisation</button><span class="hint">Uses the email and password above for your admin login.</span></div>
+    </div>${signin?`<div class="hint">You were signed out. Enter your email and password and click <b>Sign in</b>.</div>`:""}</div>`;
+}
+async function cloudStart(link, mode){
+  const email=$("#cl-email").value.trim(), pw=$("#cl-pw").value;
+  if(!email||pw.length<6){ toast("Enter your email and a password of at least 6 characters."); return; }
+  S.cloud=S.cloud||{};
+  if(mode==="create"){ const url=$("#cl-url").value.trim(), key=$("#cl-key").value.trim();
+    if(!/^https?:\/\//.test(url)||key.length<20){ toast("Paste the Supabase project URL and anon key."); return; } Object.assign(S.cloud,{url,key}); }
+  else { const d=parseLink(link); if(d&&d.u&&d.k) Object.assign(S.cloud,{url:d.u,key:d.k}); else if(!S.cloud.url){ toast("Paste the link your admin sent you."); return; } S.cloud.pendingToken=d&&d.t; }
+  S.cloud.email=email; Object.assign(S.cloud,{recs:{},synced:{},dirty:{},lastPull:null});
+  try{
+    if(mode==="signin") await authCall("token?grant_type=password",{email,password:pw});
+    else { try{ await authCall("signup",{email,password:pw}); } catch(e){ if(/already has a login/.test(e.message)) await authCall("token?grant_type=password",{email,password:pw}); else throw e; } }
+    let created=null;
+    if(mode==="create") created=await rpc("create_org",{org_name:$("#cl-org").value.trim()||"HOH",my_name:$("#cl-name").value.trim()||email,location_name:$("#cl-loc").value.trim()||"Main"});
+    else if(mode==="join"&&S.cloud.pendingToken) await rpc("accept_invite",{tok:S.cloud.pendingToken});
+    delete S.cloud.pendingToken;
+    const local={entries:S.entries,counts:S.counts,monthRates:S.monthRates,opening:S.opening,books:S.books};
+    if(!applyWho(await rpc("whoami"))) return;
+    if(created) { S.cloud.settingsTouched=true; S.cloud.locId=created.location_id; }
+    await pullAll(); loadLocation(S.cloud.locId);
+    const canBook=["admin","bookkeeper"].includes(S.cloud.me.role);
+    if(canBook&&local.entries.length&&!S.entries.length&&confirm(`Upload the ${local.entries.length} line(s) and ${local.counts.length} safe count(s) already on this computer to ${locName()}?`)){
+      local.entries.forEach(e=>{ const p=personOf(e); if(p==="me") e.personId=S.cloud.me.id; else if("personId" in e && e.personId==="me") e.personId=S.cloud.me.id; });
+      Object.assign(S,{entries:local.entries,counts:local.counts,monthRates:local.monthRates||{},opening:local.opening,books:local.books||{}});
+    }
+    save(); await syncNow({render:true}); $("#settings").close(); renderCloudHeader();
+    toast(`Signed in to ${S.cloud.org.name} · ${locName()}.`,5000);
+  }catch(e){ toast(e.message,8000); }
+}
+async function openPhoto(path){
+  if(/^https?:/.test(path)){ window.open(path,"_blank"); return; }
+  try{ const d=await sb("POST","/storage/v1/object/sign/receipts/"+path.split("/").map(encodeURIComponent).join("/"),{expiresIn:3600});
+    window.open(S.cloud.url.replace(/\/$/,"")+"/storage/v1"+d.signedURL,"_blank"); }
+  catch(e){ toast("Couldn’t open the photo: "+e.message); }
+}
+
+
+/* ---------- People tab ---------- */
+function canManage(p){ const me=S.cloud.me; return me.role==="admin"||(me.role==="bookkeeper"&&p.role==="staff"); }
+function renderPeople(){
+  if(!CL.on){ $("#pp-table").innerHTML=""; return; }
+  const c=S.cloud, me=c.me, isAdmin=me.role==="admin";
+  $("#pp-locs").innerHTML=isAdmin?`<div class="panel row"><b>Locations</b>${c.locations.map(l=>`<span class="pill" style="font-size:13px;padding:3px 10px">${esc(l.name)} <a href="#" data-loc-rename="${l.id}" title="Rename">✎</a></span>`).join("")}<div class="spacer"></div><button class="btn" id="pp-addloc">Add location</button></div>`:"";
+  const L=id=>c.locations.find(l=>l.id===id)?.name||"";
+  $("#pp-table").innerHTML=`<thead><tr><th>Name</th><th>Role</th><th>Locations</th><th>Status</th><th></th></tr></thead><tbody>${c.people.map(p=>`<tr data-pid="${p.id}"${p.active?"":' class="skip"'}>
+    <td><b>${esc(p.name)}</b>${p.id===me.id?' <span class="hint">(you)</span>':""}${p.email?`<div class="hint">${esc(p.email)}</div>`:""}</td>
+    <td><span class="role-tag">${esc(p.role)}</span></td><td>${p.role==="admin"&&!p.locations.length?"All":p.locations.map(L).filter(Boolean).map(esc).join(", ")}</td>
+    <td>${!p.active?"Switched off":p.joined?"✓ Joined":"Invite not used yet"}</td>
+    <td style="white-space:nowrap">${canManage(p)?`<button class="btn small" data-pp-edit="${p.id}">Edit</button> ${p.active?`<button class="btn small" data-pp-link="${p.id}">${p.joined?"New device link":"Invite link"}</button>`:""}`:""}</td></tr>`).join("")}</tbody>`;
+}
+let ppEditing=null;
+function openPerson(p){
+  ppEditing=p||null; const me=S.cloud.me, isAdmin=me.role==="admin";
+  $("#pp-title").textContent=p?`Edit ${p.name}`:"Add person";
+  const roles=isAdmin?["staff","bookkeeper","admin","viewer"]:["staff"];
+  $("#pp-role").innerHTML=roles.map(r=>`<option value="${r}"${(p?p.role:"staff")===r?" selected":""}>${r[0].toUpperCase()+r.slice(1)}</option>`).join("");
+  $("#pp-name").value=p?p.name:""; $("#pp-email").value=p&&p.email||""; $("#pp-active").checked=p?p.active:true; $("#pp-active-row").hidden=!p;
+  const mine=isAdmin?S.cloud.locations:S.cloud.locations.filter(l=>(me.locations||[]).includes(l.id)||true);
+  $("#pp-locboxes").innerHTML=mine.map(l=>`<label class="pchk" style="font-size:14px;color:var(--ink)"><input type="checkbox" value="${l.id}"${p?(p.locations.includes(l.id)?" checked":""):(l.id===S.cloud.locId?" checked":"")}> ${esc(l.name)}</label>`).join("");
+  $("#pp-dlg").showModal(); setTimeout(()=>$("#pp-name").focus(),50);
+}
+async function savePerson(){
+  const name=$("#pp-name").value.trim(), role=$("#pp-role").value, email=$("#pp-email").value.trim(), locs=$$("#pp-locboxes input:checked").map(x=>x.value);
+  if(!name){ toast("Type their name."); return; }
+  if(role!=="admin"&&!locs.length){ toast("Pick at least one location."); return; }
+  try{
+    if(ppEditing){ await rpc("update_person",{mid:ppEditing.id,p_name:name,p_role:role,p_email:email,p_active:$("#pp-active").checked,p_locations:locs});
+      $("#pp-dlg").close(); await syncNow({render:true}); toast("Saved."); }
+    else { const r=await rpc("add_person",{p_name:name,p_role:role,p_email:email,p_locations:locs});
+      $("#pp-dlg").close(); await syncNow({render:true}); showLink(name,role,r.token); }
+  }catch(e){ toast(e.message,7000); }
+}
+function showLink(name,role,token){
+  const link=makeLink({u:S.cloud.url,k:S.cloud.key,t:token,o:S.cloud.org.name,r:role});
+  $("#link-title").textContent=`Invite link for ${name}`; $("#link-text").value=link;
+  $("#link-intro").innerHTML=role==="staff"?`Send this to <b>${esc(name)}</b> privately, for example on WhatsApp. They open it on their phone and they’re in, no password needed.`:`Send this to <b>${esc(name)}</b> privately. They open Zip Receipt, go to <b>Settings → HOH cloud</b>, paste the link, choose a password and click <b>Join with invite</b>. It also works on their phone.`;
+  $("#link-how").textContent=(S.settings.phoneUrl?"":"Tip: set the phone app address in Settings so links open the phone app directly. ")+"The link works once and expires in 30 days. If they lose their phone, make a new device link.";
+  $("#link-dlg").showModal(); $("#link-text").select();
+}
+async function newLink(p){ try{ const t=await rpc("create_invite",{member:p.id}); showLink(p.name,p.role,t); }catch(e){ toast(e.message,7000); } }
+async function addLocation(){ const n=prompt("Name of the new location (e.g. Duhok):"); if(!n||!n.trim()) return;
+  try{ await sb("POST","/rest/v1/locations",{org_id:S.cloud.org.id,name:n.trim()},"return=minimal"); await syncNow({render:true}); toast(`${n.trim()} added. Add people to it with Add person.`); }catch(e){ toast(e.message,7000); } }
+async function renameLocation(id){ const l=S.cloud.locations.find(x=>x.id===id); const n=prompt("Rename location:",l?.name||""); if(!n||!n.trim()) return;
+  try{ await sb("PATCH",`/rest/v1/locations?id=eq.${id}`,{name:n.trim()},"return=minimal"); await syncNow({render:true}); }catch(e){ toast(e.message,7000); } }
 
 /* ---------- import tab ---------- */
 function renderImport(){
@@ -943,6 +1309,23 @@ async function handleFiles(files){
 function typeOptions(sel){ return Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===sel?" selected":""}>${v.label}</option>`).join(""); }
 function curOptions(sel){ return CURS.map(c=>`<option${c===sel?" selected":""}>${c}</option>`).join(""); }
 function renderSourceSelect(el,val){ el.innerHTML=`<option value="">All sources</option>`+[...new Set(S.entries.map(e=>e.source))].map(s=>`<option${s===val?" selected":""}>${esc(s)}</option>`).join(""); }
+function personOptions(sel,allowNone){ return (allowNone?`<option value="">${CL.on?"—":"Someone else"}</option>`:"")+peopleList().filter(p=>p.active||p.id===sel).map(p=>`<option value="${esc(p.id)}"${p.id===sel?" selected":""}>${esc(p.name)}</option>`).join(""); }
+function personCell(e){
+  if(e.type==="expense") return `<label class="pchk"><input type="checkbox" data-k="reimb"${e.reimb?" checked":""}> Reimb.</label>${e.reimb?` <select data-k="personId" class="psel">${personOptions(personOf(e)||myPersonId(),false)}</select>`:""}`;
+  if(BAL_TYPES.includes(e.type)) return `<select data-k="personId" class="psel">${personOptions(personOf(e),true)}</select>`;
+  return "";
+}
+function logList(allMonths){
+  const q=ui.entSearch.toLowerCase();
+  return sorted(S.entries).filter(e=>{
+    if(!allMonths && !inMonth(e.date,ui.month)) return false;
+    if(ui.entSource && e.source!==ui.entSource) return false;
+    if(ui.entFilter==="flag" && !e.flags.length) return false;
+    if(ui.entFilter==="rc" && !(e.receipt&&e.type!=="skip")) return false;
+    if(ui.entFilter==="skip" && e.type!=="skip") return false;
+    if(q && !(e.desc+" "+e.text+" "+e.who).toLowerCase().includes(q)) return false;
+    return true; });
+}
 function renderEntries(){
   renderSourceSelect($("#ent-source"),ui.entSource);
   const q=ui.entSearch.toLowerCase();
@@ -957,10 +1340,10 @@ function renderEntries(){
   const t=$("#ent-table");
   if(!S.entries.length){ t.innerHTML=`<tr><td class="empty">No lines yet. Import a chat export first.</td></tr>`; return; }
   if(!list.length){ t.innerHTML=`<tr><td class="empty">${S.entries.some(e=>inMonth(e.date,ui.month))?"Nothing matches this filter.":"Nothing logged in "+monthLabel(ui.month)+" yet."}</td></tr>`; return; }
-  let html=`<thead><tr><th>Date</th><th>Time</th><th>Who</th><th>Description</th><th>Type</th><th>Cur.</th><th class="num">Amount</th><th title="Make a receipt">Receipt</th><th>Original message</th><th></th></tr></thead><tbody>`;
+  let html=`<thead><tr><th>Date</th><th>Time</th><th>Who</th><th>Description</th><th>Type</th><th>Cur.</th><th class="num">Amount</th><th title="Make a receipt">Receipt</th><th title="Reimbursable expenses come out of your advance, not the safe. Tick “Mine” on your own advances.">Personal</th><th>Original message</th><th></th></tr></thead><tbody>`;
   let lastDay="";
   list.forEach(e=>{
-    if(e.date!==lastDay){ lastDay=e.date; html+=`<tr class="dayhead"><td colspan="10">${esc(niceDate(e.date))}</td></tr>`; }
+    if(e.date!==lastDay){ lastDay=e.date; html+=`<tr class="dayhead"><td colspan="11">${esc(niceDate(e.date))}</td></tr>`; }
     const cls=(e.flags.length?"flag ":"")+(e.type==="skip"?"skip":"");
     html+=`<tr class="${cls}" data-id="${e.id}">
       <td><input type="date" class="dt" data-k="date" value="${esc(e.date)}"></td>
@@ -971,6 +1354,7 @@ function renderEntries(){
       <td><select data-k="currency">${curOptions(e.currency)}</select></td>
       <td><input type="text" inputmode="decimal" class="amt" data-k="amount" value="${fmtN(e.amount,e.currency)}"></td>
       <td style="text-align:center"><input type="checkbox" data-k="receipt"${e.receipt?" checked":""}${e.type==="skip"?" disabled":""} aria-label="Make receipt"></td>
+      <td>${personCell(e)}</td>
       <td><div class="src" title="${esc(e.text)}">${e.photo?`<a class="photo-link" href="${esc(e.photo)}" target="_blank" rel="noopener">📷</a> `:""}${esc(e.text)}</div></td>
       <td style="white-space:nowrap">${e.flags.length?`<button class="btn small" data-act="ok" title="Looks right">OK</button> `:""}${findAmounts(e.text).length>1?`<button class="btn small" data-act="split">Split</button> `:""}<button class="btn small" data-act="dup" title="Copy this line">+</button> <button class="btn small danger" data-act="del" title="Delete">✕</button></td>
     </tr>`;
@@ -980,8 +1364,11 @@ function renderEntries(){
 function entryChanged(e,k,el){
   if(k==="amount") e.amount=num(el.value)??0;
   else if(k==="receipt") e.receipt=el.checked;
+  else if(k==="reimb"){ e.reimb=el.checked; if(el.checked&&!personOf(e)) e.personId=myPersonId(); }
+  else if(k==="personId"){ e.personId=el.value||null; if(e.type==="advance") e.advMine=el.value===myPersonId(); }
   else e[k]=el.value;
   if(k==="type"){ e.receipt = el.value==="expense"; }
+  if(k==="reimb"||k==="type"){ const tr=el.closest("tr"); save(); renderCounts(); renderEntries(); return; }
   if(e.rc && (k==="desc"||k==="amount") && e.rc.items.length===1 && !e.rc.reviewed){ e.rc.items[0].d=e.desc; e.rc.items[0].t=e.amount; }
   if(e.rc && k==="date" && !e.rc.reviewed) e.rc.date=e.date;
   if(k==="date" && !inMonth(e.date,ui.month)){ toast(`Moved to ${monthLabel(e.date.slice(0,7))}.`); save(); renderAll(); return; }
@@ -1004,7 +1391,7 @@ function engine(){
   const src=S.books.source||"", first=startMonth(), months=dataMonths().filter(m=>m>=first);
   const run={IQD:num(S.opening?.IQD)||0, USD:num(S.opening?.USD)||0};
   const ev=[];
-  S.entries.forEach(e=>{ if(e.type==="skip"||e.type==="count"||!e.date||e.date.slice(0,7)<first||(src&&e.source!==src)) return; ev.push({k:"e",d:e.date,t:e.time||"",o:e.order||0,e}); });
+  S.entries.forEach(e=>{ if(e.type==="skip"||e.type==="count"||(e.type==="expense"&&e.reimb)||!e.date||e.date.slice(0,7)<first||(src&&e.source!==src)) return; ev.push({k:"e",d:e.date,t:e.time||"",o:e.order||0,e}); });
   allCounts().forEach(c=>{ if(!c.date||c.date.slice(0,7)<first) return; ev.push({k:"c",d:c.date,t:c.time||"",o:0,c}); });
   ev.sort((a,b)=>a.d.localeCompare(b.d)||a.t.localeCompare(b.t)||(a.k==="c")-(b.k==="c")||a.o-b.o);
   const res={}; let i=0;
@@ -1131,6 +1518,7 @@ function reportHTML(){
   list.forEach(e=>{ const dir=TYPES[e.type].dir; h+=`<tr><td>${e.date}</td><td>${esc(e.who)}</td><td>${esc(e.desc)}</td><td>${TYPES[e.type].label}</td><td class="n">${fmtM(Math.abs(e.amount),e.currency)}</td><td class="n">${dir<0?"−":"+"}${usd(round(u.toUSD(e),"USD"))}</td></tr>`; });
   h+=`</tbody></table>`;
   const skipped=S.entries.filter(e=>e.type==="skip"&&inMonth(e.date,m)).length; if(skipped) h+=`<p style="font-size:9pt">${skipped} line(s) were marked “skip” and are not counted.</p>`;
+  const reimbN=S.entries.filter(e=>e.type==="expense"&&e.reimb&&inMonth(e.date,m)).length; if(reimbN) h+=`<p style="font-size:9pt">${reimbN} expense(s) were paid from advances, not the safe. They are in the personal ledger.</p>`;
   return h+`<div class="sig"><div>Prepared by</div><div>Checked by</div></div></div>`;
 }
 /* ---------- monthly report (Excel) ---------- */
@@ -1170,13 +1558,253 @@ function reportXlsx(){
   u.counts.forEach(x=>cs.rows.push([x.c.date,x.c.who||"",x.c.iqd!=null?{v:x.c.iqd,s:2}:"",x.c.usd!=null?{v:x.c.usd,s:3}:"",$v(x.counted),$v(x.should),{v:x.diffUSD,s:4},x.c.note||""]));
   return makeXlsx([summary,tx,cs]);
 }
-async function exportXlsx(){
-  const bytes=reportXlsx(); if(!bytes){ toast("Enter this month’s exchange rate first."); return; }
-  const m=ui.month, name=`Report ${monthLabel(m)}.xlsx`;
-  if(NATIVE){ let bin=""; for(let i=0;i<bytes.length;i+=0x8000) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
-    try{ const path=`${m}/${name}`; await native({cmd:"write",path,text:btoa(bin),base64:true}); toast(`Saved ${name} in Documents/Zip_Receipt/${m}`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); }
-    catch(e){ toast("Couldn’t save the Excel file: "+(e.message||e),8000); } return; }
-  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+async function exportXlsx(quiet){
+  const bytes=reportXlsx(); if(!bytes){ toast("Enter this month’s exchange rate first."); return false; }
+  return saveXlsx(bytes,`Report ${monthLabel(ui.month)}.xlsx`,ui.month,quiet);
+}
+
+
+/* ---------- personal: advances and reimbursable spending ---------- */
+function myFirst(){ return (CL.on&&S.cloud.me?S.cloud.me.name:(S.settings.me||S.settings.payer||"")).trim().split(/\s+/)[0].toLowerCase(); }
+function guessMine(e){ const me=myFirst(); return !!me && (e.desc+" "+e.text).toLowerCase().includes(me); }
+function isMine(e){ return e.advMine!=null ? !!e.advMine : guessMine(e); }
+const BAL_TYPES=["advance","repay","refund"];
+function myPersonId(){ return CL.on&&S.cloud.me ? S.cloud.me.id : "me"; }
+/* Who an advance / repayment / reimbursable expense belongs to. Older lines used "Mine" and "Reimb." only. */
+function personOf(e){
+  if("personId" in e) return e.personId||null;
+  if((e.type==="advance"&&isMine(e))||(e.type==="expense"&&e.reimb)) return myPersonId();
+  return null;
+}
+function peopleList(){
+  if(CL.on) return (S.cloud.people||[]).map(p=>({id:p.id,name:p.name,role:p.role,active:p.active,locations:p.locations||[]}));
+  return [{id:"me",name:S.settings.me||S.settings.payer||"Me",role:"admin",active:true,locations:[]}];
+}
+function personName(id){ if(!id) return ""; const p=peopleList().find(x=>x.id===id); return p?p.name:(id==="me"?"Me":"Someone"); }
+function counts(e){ return e.type!=="skip" && (BAL_TYPES.includes(e.type)||(e.type==="expense"&&e.reimb)); }
+function sgn(e){ return e.type==="advance"||e.type==="repay"?1:-1; }
+function personEngine(pid){
+  const ev=sorted(S.entries.filter(e=>e.date&&counts(e)&&personOf(e)===pid));
+  const run={IQD:0,USD:0}, res={}; let i=0;
+  dataMonths().forEach(m=>{
+    const r={month:m,open:{...run},adv:{IQD:0,USD:0},spent:{IQD:0,USD:0},lines:[]};
+    while(i<ev.length && ev[i].date.slice(0,7)<=m){ const e=ev[i++], c=e.currency, a=Math.abs(e.amount), g=sgn(e);
+      if(g>0) r.adv[c]+=a; else r.spent[c]+=a; run[c]+=g*a; r.lines.push({e,run:{...run}}); }
+    r.end={...run}; res[m]=r;
+  });
+  return res;
+}
+function personMonth(m,pid){
+  pid=pid||ui.person||myPersonId();
+  const r=personEngine(pid)[m]; if(!r) return null;
+  const {rate,from}=rateFor(m);
+  const usesIQD=[r.open.IQD,r.adv.IQD,r.spent.IQD,r.end.IQD].some(v=>Math.abs(v)>0.0001);
+  if(usesIQD&&!rate) return {r,needRate:true,pid};
+  const to=(v,c)=>c==="USD"?v:v/rate, both=o=>round(to(o.IQD||0,"IQD")+to(o.USD||0,"USD"),"USD");
+  return {r,pid,rate,rateFrom:from,open:both(r.open),adv:both(r.adv),spent:both(r.spent),end:both(r.end),toUSD:e=>to(Math.abs(e.amount),e.currency),runUSD:x=>both(x)};
+}
+const personalMonth=(m)=>personMonth(m,myPersonId());
+function holdText(v,pid){
+  const me=!pid||pid===myPersonId(), n=me?"":personName(pid);
+  if(Math.abs(v)<0.01) return me?"All square: you hold no advance money":`${n} is all square`;
+  return v>0 ? (me?`You hold ${usd(v)} of advance money`:`${n} holds ${usd(v)} of advance money`) : (me?`HOH owes you ${usd(-v)}`:`HOH owes ${n} ${usd(-v)}`);
+}
+function lineKind(e){ return {advance:"Advance",repay:"Repaid by HOH",refund:"Returned to safe",expense:"Reimbursable"}[e.type]||e.type; }
+function relevantPeople(){
+  const loc=CL.on?S.cloud.locId:null, ids=new Set(S.entries.filter(counts).map(personOf).filter(Boolean));
+  return peopleList().filter(p=>ids.has(p.id)||(p.active&&(p.role==="staff"||!CL.on)&&(!loc||p.locations.includes(loc))));
+}
+function renderMine(){
+  const m=ui.month, ppl=relevantPeople();
+  if(!ui.person||!peopleList().some(p=>p.id===ui.person)) ui.person=ppl.some(p=>p.id===myPersonId())?myPersonId():(ppl[0]?.id||myPersonId());
+  $("#adv-person").innerHTML=peopleList().filter(p=>ppl.includes(p)||p.id===ui.person).map(p=>`<option value="${esc(p.id)}"${p.id===ui.person?" selected":""}>${esc(p.name)}${p.id===myPersonId()?" (you)":""}</option>`).join("");
+  const canEdit=!CL.on||["admin","bookkeeper"].includes(S.cloud.me?.role);
+  $("#adv-give").hidden=$("#adv-repay").hidden=!canEdit;
+  const p=personMonth(m,ui.person), who=personName(ui.person);
+  $("#mine-title").textContent=`Advances · ${who} · ${monthLabel(m)}`;
+  const body=$("#mine-body");
+  if(!CL.on&&!myFirst()){ body.innerHTML=`<div class="panel">Add your name in <b>Settings → My name</b> so Zip Receipt can tell which advances are yours.</div>`; renderAllPeople(); return; }
+  if(!p){ body.innerHTML=`<div class="panel empty">Nothing yet.</div>`; renderAllPeople(); return; }
+  if(p.needRate){ body.innerHTML=`<div class="panel">Enter the exchange rate for ${monthLabel(m)} on the <b>Books</b> tab to see this in dollars.</div>`; renderAllPeople(); return; }
+  body.innerHTML=`<div class="cur-card usd-card" style="margin-bottom:16px"><h3><span>${esc(who)} · ${monthLabel(m)}</span><span class="hint">IQD at ${fmtN(p.rate,"USD")} = $1</span></h3>
+    <div class="mine-big ${p.end<0?"in":""}">${holdText(p.end,ui.person)}</div>
+    <div class="usd-cols" style="margin-top:10px"><table>
+      <tr><td>Carried from ${monthLabel(addMonths(m,-1)).split(" ")[0]}</td><td class="num">${usd(p.open)}</td></tr>
+      <tr><td class="in">Advances and repayments to them</td><td class="num in">+${usd(p.adv)}</td></tr>
+      <tr><td class="out">Spent on HOH, or returned</td><td class="num out">−${usd(p.spent)}</td></tr>
+      <tr class="total"><td>Balance</td><td class="num">${usd(p.end)}</td></tr></table>
+    <div class="hint" style="padding-top:6px">Positive: advance money they still hold. Negative: what HOH owes them.<br><br>An advance and a repayment to them both come out of the safe. Their reimbursable expenses never touch the safe; they come off the advance.</div></div></div>
+  <div class="tablewrap"><table class="data" style="min-width:760px"><thead><tr><th>Date</th><th>Description</th><th>Kind</th><th class="num">Amount</th><th class="num">USD</th><th class="num">Balance (USD)</th></tr></thead><tbody>
+    <tr><td colspan="5" class="hint">Carried in</td><td class="num"><b>${usd(p.open)}</b></td></tr>
+    ${p.r.lines.map(l=>{ const e=l.e, g=sgn(e)>0; return `<tr><td>${esc(e.date)}</td><td>${esc(e.desc)}${e.photoPath?` <a class="photo-link" href="#" data-photo="${esc(e.photoPath)}">📷</a>`:""}</td><td>${lineKind(e)}</td><td class="num">${fmtM(Math.abs(e.amount),e.currency)}</td><td class="num ${g?"in":"out"}">${g?"+":"−"}${usd(round(p.toUSD(e),"USD"))}</td><td class="num"><b>${usd(p.runUSD(l.run))}</b></td></tr>`; }).join("")||`<tr><td colspan="6" class="empty">Nothing for ${esc(who)} in ${monthLabel(m)}.</td></tr>`}
+  </tbody></table></div>`;
+  renderAllPeople();
+}
+function peopleBalances(m){
+  return relevantPeople().map(p=>({p,u:personMonth(m,p.id)})).filter(x=>x.u&&!x.u.needRate&&(x.u.r.lines.length||Math.abs(x.u.end)>0.005||Math.abs(x.u.open)>0.005));
+}
+function renderAllPeople(){
+  const m=ui.month; $("#adv-all-month").textContent=monthLabel(m);
+  const rows=peopleBalances(m);
+  $("#adv-all").innerHTML=rows.length?`<div class="tablewrap"><table class="data" style="min-width:700px"><thead><tr><th>Person</th><th class="num">Carried in</th><th class="num">Given</th><th class="num">Spent / returned</th><th class="num">Balance</th><th></th></tr></thead><tbody>${rows.map(({p,u})=>`<tr><td><a href="#" data-person="${esc(p.id)}"><b>${esc(p.name)}</b></a></td><td class="num">${usd(u.open)}</td><td class="num in">${usd(u.adv)}</td><td class="num out">${usd(u.spent)}</td><td class="num"><b>${usd(u.end)}</b></td><td class="hint">${u.end>0.005?"holds advance":u.end<-0.005?"HOH owes them":"square"}</td></tr>`).join("")}</tbody></table></div>`:`<div class="panel hint">No advances yet in ${monthLabel(m)}.</div>`;
+}
+function openAdvance(kind){
+  const dlg=$("#adv-dlg"); dlg.dataset.kind=kind;
+  $("#adv-title").textContent=kind==="advance"?"Give advance":"Repayment";
+  $("#ad-dir-row").hidden=kind==="advance";
+  const opts=peopleList().filter(p=>p.active); 
+  $("#ad-person").innerHTML=opts.map(p=>`<option value="${esc(p.id)}"${p.id===ui.person?" selected":""}>${esc(p.name)}</option>`).join("");
+  $("#ad-amount").value=""; $("#ad-cur").value=S.settings.defaultCurrency||"IQD"; $("#ad-note").value="";
+  $("#ad-date").value=inMonth(today(),ui.month)?today():ui.month+"-01";
+  dlg.showModal(); setTimeout(()=>$("#ad-amount").focus(),50);
+}
+function saveAdvance(){
+  const dlg=$("#adv-dlg"), kind=dlg.dataset.kind==="advance"?"advance":$("#ad-dir").value, amt=num($("#ad-amount").value), pid=$("#ad-person").value;
+  if(!amt||amt<=0){ toast("Enter the amount."); return; }
+  const name=personName(pid), note=$("#ad-note").value.trim();
+  const desc={advance:`Advance to ${name}`,repay:`Repayment to ${name}`,refund:`Advance returned by ${name}`}[kind]+(note?` – ${note}`:"");
+  const e=makeEntry({key:"adv:"+uid(),source:"Advances",date:$("#ad-date").value||today(),who:CL.on?S.cloud.me.name:(S.settings.me||""),text:desc,desc,amount:amt,
+    currency:$("#ad-cur").value,type:kind,receipt:false,order:S.entries.length,personId:pid});
+  S.entries.push(e); dlg.close(); ui.person=pid; save(); renderAll(); toast(`${TYPES[kind].label} saved.`);
+}
+function mineHTML(pid){
+  pid=pid||ui.person||myPersonId();
+  const m=ui.month, p=personMonth(m,pid); if(!p||p.needRate) return null;
+  const who=personName(pid);
+  let h=`<div class="report"><div class="rh"><div><h1>Advance statement · ${monthLabel(m)}</h1><div>${esc(who)} · ${esc(S.settings.orgName)}${CL.on?" · "+esc(locName()):""}</div></div><div class="meta">Exchange rate: ${fmtN(p.rate,"USD")} IQD = $1<br>Printed ${esc(new Date().toLocaleString("en-GB"))}</div></div>`;
+  h+=`<table style="width:60%"><tbody><tr><td>Carried from ${monthLabel(addMonths(m,-1))}</td><td class="n">${usd(p.open)}</td></tr><tr><td>Advances and repayments received</td><td class="n">${usd(p.adv)}</td></tr><tr><td>Spent on HOH, or returned</td><td class="n">${usd(p.spent)}</td></tr><tr class="t"><td>Balance</td><td class="n">${usd(p.end)}</td></tr><tr class="t"><td colspan="2">${holdText(p.end,pid)}</td></tr></tbody></table>`;
+  h+=`<h2>Lines</h2><table><thead><tr><th>Date</th><th>Description</th><th>Kind</th><th class="n">Amount</th><th class="n">USD</th><th class="n">Balance</th></tr></thead><tbody>${p.r.lines.map(l=>{ const e=l.e, g=sgn(e)>0; return `<tr><td>${e.date}</td><td>${esc(e.desc)}</td><td>${lineKind(e)}</td><td class="n">${fmtM(Math.abs(e.amount),e.currency)}</td><td class="n">${g?"+":"−"}${usd(round(p.toUSD(e),"USD"))}</td><td class="n">${usd(p.runUSD(l.run))}</td></tr>`; }).join("")}</tbody></table>`;
+  return h+`<div class="sig"><div>${esc(who)}</div><div>Checked by</div></div></div>`;
+}
+function mineXlsx(pid){
+  pid=pid||ui.person||myPersonId();
+  const m=ui.month, p=personMonth(m,pid); if(!p||p.needRate) return null;
+  const $v=v=>({v:round(v,"USD"),s:4}), B=v=>({v,s:1});
+  return makeXlsx([{name:"Summary",widths:[38,16],rows:[[{v:`Advance statement · ${monthLabel(m)}`,s:6}],[personName(pid)],[`Exchange rate: ${p.rate} IQD = $1`],[],
+      ["Carried in",$v(p.open)],["Advances and repayments received",$v(p.adv)],["Spent on HOH, or returned",$v(p.spent)],[B("Balance"),{v:p.end,s:5}],[holdText(p.end,pid)]]},
+    {name:"Lines",widths:[12,36,18,9,14,13,14],rows:[["Date","Description","Kind","Currency","Amount","USD","Balance (USD)"].map(B)].concat(p.r.lines.map(l=>{ const e=l.e, g=sgn(e)>0, v=round(p.toUSD(e),"USD");
+      return [e.date,e.desc,lineKind(e),e.currency,{v:Math.abs(e.amount),s:e.currency==="USD"?3:2},$v(g?v:-v),$v(p.runUSD(l.run))]; }))}]);
+}
+
+/* ---------- Log export (any source, e.g. a Telegram chat) ---------- */
+function logXlsx(allMonths){
+  const list=logList(allMonths); if(!list.length) return null;
+  const B=v=>({v,s:1});
+  const rows=[["Date","Time","Who","Description","Type","Personal","Currency","Amount","USD value","Source","Project","Business","Category","Original message"].map(B)];
+  list.forEach(e=>{ const r=rateFor((e.date||"").slice(0,7)).rate, v=e.currency==="USD"?Math.abs(e.amount):(r?Math.abs(e.amount)/r:null), rc=e.rc||{};
+    rows.push([e.date,e.time||"",e.who||"",e.desc,TYPES[e.type].label,e.type==="expense"&&e.reimb?"Reimbursable · "+personName(personOf(e)):BAL_TYPES.includes(e.type)?lineKind(e)+(personOf(e)?" · "+personName(personOf(e)):""):"",
+      e.currency,{v:Math.abs(e.amount),s:e.currency==="USD"?3:2},v!=null?{v:round(v,"USD"),s:4}:"",e.source||"",rc.project||"",rc.business||"",rc.category||"",e.text||""]); });
+  return makeXlsx([{name:"Log",widths:[12,7,18,34,12,18,9,14,13,26,16,18,16,50],rows}]);
+}
+async function exportLog(){
+  const all=$("#ent-scope").value==="all", bytes=logXlsx(all); if(!bytes){ toast("Nothing to export with this filter."); return; }
+  const src=ui.entSource?` ${ui.entSource.replace(/[\\/:*?"<>|]/g,"").slice(0,40)}`:"";
+  await saveXlsx(bytes,`Log${src} ${all?"all months":monthLabel(ui.month)}.xlsx`,all?null:ui.month);
+}
+
+/* ---------- Reports tab ---------- */
+function registerRows(){
+  const {first}=engine(); return dataMonths().filter(m=>m>=first).map(m=>{ const u=monthBooks(m); return {m,u}; });
+}
+function renderReports(){
+  const m=ui.month, L=monthLabel(m); $("#rep-title").textContent="Reports · "+L;
+  const nR=receiptEntries("safe").length, nP=receiptEntries("personal").length, nL=S.entries.filter(e=>inMonth(e.date,m)).length;
+  const card=(t,d,btns,cls="")=>`<div class="rep-card ${cls}"><b>${t}</b><span class="hint">${d}</span><div class="row">${btns}</div></div>`;
+  $("#rep-month").innerHTML=
+    (NATIVE?card(`Everything for ${L}`,`Saves every report and receipt set for the month into Documents/Zip_Receipt/${m}.`,`<button class="btn primary" data-rep="all">Save all</button>`,"all"):"")+
+    card("Safe books","Money in and out, the safe count and the difference, in US dollars.",`<button class="btn" data-rep="books-x">Excel</button><button class="btn primary" data-rep="books-p">PDF</button>`)+
+    card(`Safe receipts (${nR})`,"Official HOH receipts for expenses paid from the safe.",`<button class="btn primary" data-rep="rc-safe"${nR?"":" disabled"}>PDF</button>`)+
+    card("My advances","Your advances and reimbursable spending, with the balance.",`<button class="btn" data-rep="mine-x">Excel</button><button class="btn primary" data-rep="mine-p">PDF</button>`)+
+    card(`Personal receipts (${nP})`,"Receipts for expenses you paid from your advance or pocket.",`<button class="btn primary" data-rep="rc-personal"${nP?"":" disabled"}>PDF</button>`)+
+    card(`Full log (${nL} lines)`,"Every line for the month, all sources, as a spreadsheet.",`<button class="btn primary" data-rep="log-x"${nL?"":" disabled"}>Excel</button>`);
+  // register, month by month
+  const rows=registerRows();
+  $("#rep-register").innerHTML=`<div class="tablewrap"><table class="data" style="min-width:900px"><thead><tr><th>Month</th><th class="num">Opening</th><th class="num">Money in</th><th class="num">Money out</th><th class="num">Should have</th><th>Counted on</th><th class="num">Counted</th><th class="num">Difference</th><th class="num">Carried</th></tr></thead><tbody>${rows.slice().reverse().map(({m:mm,u})=>{
+      if(u.needRate) return `<tr><td><b>${monthLabel(mm)}</b></td><td colspan="8" class="hint">Enter this month’s exchange rate on the Books tab.</td></tr>`;
+      const L2=u.last; return `<tr${mm===m?' style="background:var(--soft)"':""}><td><b>${monthLabel(mm)}</b></td><td class="num">${usd(u.open)}</td><td class="num in">${usd(u.in)}</td><td class="num out">${usd(u.totalOut)}</td><td class="num">${usd(u.expected)}</td><td>${L2?esc(L2.c.date):'<span class="hint">no count</span>'}</td><td class="num">${L2?`<b>${usd(L2.counted)}</b>`:"–"}</td><td class="num">${L2?diffBadge(L2.diffUSD):""}</td><td class="num"><b>${usd(u.carried)}</b></td></tr>`; }).join("")}</tbody></table></div>`;
+  renderStaffReport();
+  renderTelegram();
+}
+function registerHTMLReport(){
+  const rows=registerRows().filter(x=>!x.u.needRate);
+  return `<div class="report"><div class="rh"><div><h1>Safe count register</h1><div>${esc(S.settings.orgName)}</div></div><div class="meta">In US dollars at each month’s exchange rate<br>Printed ${esc(new Date().toLocaleString("en-GB"))}</div></div>
+  <table><thead><tr><th>Month</th><th class="n">Rate</th><th class="n">Opening</th><th class="n">Money in</th><th class="n">Money out</th><th class="n">Should have</th><th>Counted on</th><th class="n">Counted</th><th class="n">Difference</th><th class="n">Carried</th></tr></thead><tbody>${rows.map(({m,u})=>`<tr><td>${monthLabel(m)}</td><td class="n">${fmtN(u.rate,"USD")}</td><td class="n">${usd(u.open)}</td><td class="n">${usd(u.in)}</td><td class="n">${usd(u.totalOut)}</td><td class="n">${usd(u.expected)}</td><td>${u.last?u.last.c.date:"–"}</td><td class="n">${u.last?usd(u.last.counted):"–"}</td><td class="n">${u.last?(u.last.diffUSD>0?"+":"")+usd(u.last.diffUSD):""}</td><td class="n">${usd(u.carried)}</td></tr>`).join("")}</tbody></table>
+  <div class="sig"><div>Prepared by</div><div>Checked by</div></div></div>`;
+}
+function registerXlsx(){
+  const B=v=>({v,s:1}), $v=v=>({v:round(v,"USD"),s:4});
+  const rows=[[{v:"Safe count register",s:6}],[S.settings.orgName],[],["Month","Rate (IQD/$)","Opening","Money in","Money out","Should have","Counted on","Counted","Difference","Carried"].map(B)];
+  registerRows().filter(x=>!x.u.needRate).forEach(({m,u})=>rows.push([monthLabel(m),{v:u.rate,s:2},$v(u.open),$v(u.in),$v(u.totalOut),$v(u.expected),u.last?u.last.c.date:"",u.last?$v(u.last.counted):"",u.last?{v:u.last.diffUSD,s:4}:"",$v(u.carried)]));
+  return makeXlsx([{name:"Register",widths:[16,12,13,13,13,13,12,13,13,13],rows}]);
+}
+async function saveAllMonth(){
+  const L=monthLabel(ui.month); toast(`Saving everything for ${L}…`,4000);
+  const done=[];
+  if(await exportXlsx(true)) done.push("books Excel");
+  const rep=reportHTML(); if(rep&&await doPrint("report",rep,"pdf",`Report ${L}`,true)) done.push("books PDF");
+  if(await printReceipts("pdf","safe",true)) done.push("safe receipts");
+  const mx=mineXlsx(myPersonId()); if(mx&&await saveXlsx(mx,`My advances ${L}.xlsx`,ui.month,true)) done.push("my advances Excel");
+  const mh=mineHTML(myPersonId()); if(mh&&await doPrint("report",mh,"pdf",`My advances ${L}`,true)) done.push("my advances PDF");
+  if(staffRows(ui.month).length&&await saveXlsx(staffXlsx(),`Staff advances ${L}.xlsx`,ui.month,true)) done.push("staff advances Excel");
+  if(await printReceipts("pdf","personal",true)) done.push("personal receipts");
+  const prev=ui.entSource; ui.entSource=""; const lx=logXlsx(false); ui.entSource=prev; if(lx&&await saveXlsx(lx,`Log ${L}.xlsx`,ui.month,true)) done.push("log Excel");
+  toast(`Saved ${done.length} file(s) in Documents/Zip_Receipt/${ui.month}: ${done.join(", ")}.`,9000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path:ui.month})});
+}
+
+/* ---------- Reports: staff advances and all locations ---------- */
+function staffRows(m){
+  const locs=CL.on&&S.cloud.me.role==="admin"?S.cloud.locations:[CL.on?{id:S.cloud.locId,name:locName()}:{id:null,name:""}];
+  const rows=[];
+  locs.forEach(l=>withLocation(l.id,()=>peopleBalances(m).forEach(x=>rows.push({...x,loc:l}))));
+  return rows;
+}
+function renderStaffReport(){
+  const m=ui.month, rows=staffRows(m), many=CL.on&&S.cloud.me.role==="admin"&&S.cloud.locations.length>1;
+  $("#staff-h").textContent=`Staff advances · ${monthLabel(m)}`;
+  const held=rows.reduce((t,x)=>t+Math.max(0,x.u.end),0), owed=rows.reduce((t,x)=>t+Math.max(0,-x.u.end),0);
+  $("#rep-staff").innerHTML=rows.length?`<div class="row" style="margin-bottom:8px;gap:24px"><span>Advance money out with people: <b>${usd(round(held,"USD"))}</b></span><span>HOH owes people: <b class="out">${usd(round(owed,"USD"))}</b></span></div>
+    <div class="tablewrap"><table class="data" style="min-width:860px"><thead><tr><th>Person</th>${many?"<th>Location</th>":""}<th class="num">Carried in</th><th class="num">Given</th><th class="num">Spent / returned</th><th class="num">Balance</th><th></th><th>Statement</th></tr></thead><tbody>${rows.map(({p,u,loc})=>`<tr><td><b>${esc(p.name)}</b></td>${many?`<td>${esc(loc.name)}</td>`:""}<td class="num">${usd(u.open)}</td><td class="num in">${usd(u.adv)}</td><td class="num out">${usd(u.spent)}</td><td class="num"><b>${usd(u.end)}</b></td><td class="hint">${u.end>0.005?"holds advance":u.end<-0.005?"HOH owes them":"square"}</td><td style="white-space:nowrap"><button class="btn small" data-st="pdf" data-pid="${esc(p.id)}" data-loc="${esc(loc.id||"")}">PDF</button> <button class="btn small" data-st="xlsx" data-pid="${esc(p.id)}" data-loc="${esc(loc.id||"")}">Excel</button></td></tr>`).join("")}</tbody></table></div>`
+    :`<div class="panel hint">No advances or reimbursable expenses in ${monthLabel(m)}.</div>`;
+  // all locations (admins)
+  const ov=$("#rep-overview");
+  if(!many){ ov.innerHTML=""; return; }
+  const lines=S.cloud.locations.map(l=>withLocation(l.id,()=>{ const u=monthBooks(m), pb=peopleBalances(m);
+    return {l,u,held:pb.reduce((t,x)=>t+Math.max(0,x.u.end),0),owed:pb.reduce((t,x)=>t+Math.max(0,-x.u.end),0)}; }));
+  const ok=lines.filter(x=>!x.u.before&&!x.u.needRate), sum=k=>round(ok.reduce((t,x)=>t+(k(x)||0),0),"USD");
+  ov.innerHTML=`<h3 class="sec" style="margin-top:0">All locations · ${monthLabel(m)}</h3><div class="tablewrap" style="margin-bottom:18px"><table class="data" style="min-width:900px"><thead><tr><th>Location</th><th class="num">Money in</th><th class="num">Money out</th><th class="num">Should have</th><th>Counted on</th><th class="num">Counted</th><th class="num">Difference</th><th class="num">Carried</th><th class="num">Out with people</th><th class="num">Owed to people</th></tr></thead><tbody>${lines.map(({l,u,held,owed})=>u.before||u.needRate?`<tr><td><b>${esc(l.name)}</b></td><td colspan="9" class="hint">${u.needRate?"Needs this month’s exchange rate.":"Books start later."}</td></tr>`:
+      `<tr><td><b>${esc(l.name)}</b></td><td class="num in">${usd(u.in)}</td><td class="num out">${usd(u.totalOut)}</td><td class="num">${usd(u.expected)}</td><td>${u.last?esc(u.last.c.date):'<span class="hint">no count</span>'}</td><td class="num">${u.last?usd(u.last.counted):"–"}</td><td class="num">${u.last?diffBadge(u.last.diffUSD):""}</td><td class="num"><b>${usd(u.carried)}</b></td><td class="num">${usd(round(held,"USD"))}</td><td class="num">${usd(round(owed,"USD"))}</td></tr>`).join("")}
+      <tr style="font-weight:700"><td>All HOH</td><td class="num">${usd(sum(x=>x.u.in))}</td><td class="num">${usd(sum(x=>x.u.totalOut))}</td><td class="num">${usd(sum(x=>x.u.expected))}</td><td></td><td></td><td></td><td class="num">${usd(sum(x=>x.u.carried))}</td><td class="num">${usd(sum(x=>x.held))}</td><td class="num">${usd(sum(x=>x.owed))}</td></tr></tbody></table></div>`;
+}
+function staffXlsx(){
+  const m=ui.month, rows=staffRows(m), B=v=>({v,s:1}), $v=v=>({v:round(v,"USD"),s:4});
+  const sum=[[{v:`Staff advances · ${monthLabel(m)}`,s:6}],[S.settings.orgName],[],["Person","Location","Carried in","Given","Spent / returned","Balance","Status"].map(B)];
+  rows.forEach(({p,u,loc})=>sum.push([p.name,loc.name||"",$v(u.open),$v(u.adv),$v(u.spent),$v(u.end),u.end>0.005?"holds advance":u.end<-0.005?"HOH owes them":"square"]));
+  const lines=[["Person","Location","Date","Description","Kind","Currency","Amount","USD"].map(B)];
+  rows.forEach(({p,u,loc})=>u.r.lines.forEach(l=>{ const e=l.e, g=sgn(e)>0, v=round(u.toUSD(e),"USD"); lines.push([p.name,loc.name||"",e.date,e.desc,lineKind(e),e.currency,{v:Math.abs(e.amount),s:e.currency==="USD"?3:2},$v(g?v:-v)]); }));
+  return makeXlsx([{name:"Balances",widths:[22,14,13,13,15,13,16],rows:sum},{name:"Lines",widths:[22,14,12,34,18,9,13,13],rows:lines}]);
+}
+
+/* ---------- Copy for Telegram ---------- */
+function weekRange(offset){ const d=new Date(today()+"T00:00:00"); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow+7*offset);
+  const iso=x=>x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); const a=iso(d); d.setDate(d.getDate()+6); return [a,iso(d)]; }
+function renderTelegram(){
+  const per=$("#tg-period").value; $$(".tg-custom").forEach(el=>el.hidden=per!=="custom");
+  let from,to;
+  if(per==="week") [from,to]=weekRange(0); else if(per==="lastweek") [from,to]=weekRange(-1);
+  else if(per==="month"){ from=ui.month+"-01"; to=ui.month+"-31"; }
+  else { from=$("#tg-from").value||ui.month+"-01"; to=$("#tg-to").value||today(); }
+  const which=$("#tg-which").value, me=myFirst();
+  const list=sorted(S.entries.filter(e=>e.date>=from&&e.date<=to&&e.type!=="skip"&&e.type!=="count"&&(
+    which==="mine"?(e.type==="expense"&&e.reimb):which==="myall"?(TYPES[e.type].dir<0&&me&&((e.who||"").toLowerCase().startsWith(me)||(e.rc&&(e.rc.payer||"").toLowerCase().startsWith(me)))):which==="expenses"?e.type==="expense":true)));
+  const nice=d=>new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+  const title={mine:"My reimbursable expenses",myall:"What I paid",expenses:"Expenses",all:"Cash log"}[which];
+  const lines=list.map(e=>{ const sign=which==="all"&&TYPES[e.type].dir>0?"+":""; const tag=which==="all"&&e.type!=="expense"?` (${TYPES[e.type].label.toLowerCase()})`:"";
+    return `${e.date} ${sign}${fmtN(Math.abs(e.amount),e.currency)} ${e.currency.toLowerCase()} ${e.desc}${tag}`; });
+  const tot={IQD:0,USD:0}; list.forEach(e=>{ tot[e.currency]+=(which==="all"&&TYPES[e.type].dir>0?-1:1)*Math.abs(e.amount); });
+  const r=rateFor(to.slice(0,7)).rate, parts=[];
+  if(tot.IQD) parts.push(fmtN(tot.IQD,"IQD")+" IQD"); if(tot.USD) parts.push("$"+fmtN(round(tot.USD,"USD"),"USD"));
+  const totLine=list.length?`Total: ${parts.join(" + ")||"0"}${tot.IQD&&r?` ≈ $${fmtN(round(tot.USD+tot.IQD/r,"USD"),"USD")} at ${fmtN(r,"USD")}`:""}${which==="all"?" (net out)":""}`:"Nothing in this period.";
+  $("#tg-out").value=`${title} · ${nice(from)} – ${nice(to.slice(0,10)>today()&&per==="month"?today():to)}\n\n${lines.join("\n")}${lines.length?"\n\n":""}${totLine}`;
 }
 
 /* ---------- receipt replica ---------- */
@@ -1227,7 +1855,8 @@ function renderReceipts(){
   const all=receiptEntries(); const done=all.filter(e=>getRc(e).reviewed).length;
   $("#rc-progress").textContent = all.length ? `${all.length} receipts · ${done} reviewed · ${all.filter(e=>rcMissing(getRc(e)).length).length} still missing details` : "";
   const list=all.filter(e=>{ const rc=getRc(e); if(ui.rcFilter==="need") return !rc.reviewed; if(ui.rcFilter==="done") return rc.reviewed; return true; });
-  if(!all.length){ $("#rc-list").innerHTML=`<div class="panel empty">No receipts for ${monthLabel(ui.month)}. Lines marked as expenses in the Log get a receipt.</div>`; return; }
+  $$("#rc-group button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.g===ui.rcGroup));
+  if(!all.length){ $("#rc-list").innerHTML=`<div class="panel empty">${ui.rcGroup==="personal"?`No personal receipts for ${monthLabel(ui.month)}. Expenses marked <b>Reimbursable</b> in the Log appear here.`:`No receipts for ${monthLabel(ui.month)}. Lines marked as expenses in the Log get a receipt.`}</div>`; return; }
   $("#rc-list").innerHTML = list.map((e,i)=>cardHTML(e,all.indexOf(e)+1)).join("") || `<div class="panel empty">Nothing here.</div>`;
   fitPreviews();
 }
@@ -1267,29 +1896,38 @@ function refreshCard(card,e,full){
 }
 
 /* ---------- printing ---------- */
-function doPrint(kind, html, mode="pdf"){
+function doPrint(kind, html, mode="pdf", title, quiet){
   $("#print-root").innerHTML=html;
   $("#page-style").textContent = kind==="receipts" ? "@page{size:A4 landscape;margin:8mm}" : "@page{size:A4 portrait;margin:12mm}";
-  if(NATIVE) return nativeOut(kind, mode);
+  if(NATIVE) return nativeOut(kind, mode, title, quiet);
   setTimeout(()=>{ window.print(); },60);
 }
-async function nativeOut(kind, mode){
+async function nativeOut(kind, mode, title, quiet){
   await new Promise(r=>setTimeout(r,120));
-  const m=ui.month, name=`${kind==="receipts"?"Receipts":"Report"} ${monthLabel(m)}.pdf`, path=`${m}/${name}`;
+  const m=ui.month, name=`${title||(kind==="receipts"?"Receipts":"Report")+" "+monthLabel(m)}.pdf`, path=title&&/register/i.test(title)?name:`${m}/${name}`;
   try{ await native({cmd:mode, path, landscape:kind==="receipts"});
-    if(mode==="pdf") toast(`Saved ${name} in Documents/Zip_Receipt/${m}`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); }
-  catch(e){ const m=String(e.message||e); if(!/cancel/i.test(m)) toast("Couldn’t save the PDF: "+m,8000); }
+    if(mode==="pdf"&&!quiet) toast(`Saved ${name} in Documents/Zip_Receipt`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})});
+    return true; }
+  catch(e){ const msg=String(e.message||e); if(!/cancel/i.test(msg)) toast("Couldn’t save the PDF: "+msg,8000); return false; }
 }
-function printReceipts(mode="pdf"){
-  let list=receiptEntries(); if($("#rc-which").value==="done") list=list.filter(e=>getRc(e).reviewed);
-  if(!list.length){ toast("No receipts to print."); return; }
+async function saveXlsx(bytes, name, folder, quiet){
+  if(NATIVE){ let bin=""; for(let i=0;i<bytes.length;i+=0x8000) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
+    const path=folder?`${folder}/${name}`:name;
+    try{ await native({cmd:"write",path,text:btoa(bin),base64:true}); if(!quiet) toast(`Saved ${name} in Documents/Zip_Receipt`,7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); return true; }
+    catch(e){ toast("Couldn’t save the Excel file: "+(e.message||e),8000); return false; } }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); return true;
+}
+function printReceipts(mode="pdf", group, quiet){
+  const g=group||ui.rcGroup;
+  let list=receiptEntries(g); if(!quiet&&$("#rc-which").value==="done") list=list.filter(e=>getRc(e).reviewed);
+  if(!list.length){ if(!quiet) toast("No receipts to print."); return Promise.resolve(false); }
   const unrev=list.filter(e=>!getRc(e).reviewed).length;
-  if(unrev && !confirm(`${unrev} receipt(s) are not marked reviewed yet. Print anyway?`)) return;
+  if(!quiet && unrev && !confirm(`${unrev} receipt(s) are not marked reviewed yet. Print anyway?`)) return Promise.resolve(false);
   let html="";
   for(let i=0;i<list.length;i+=2){
     html+=`<div class="ppage" style="width:281mm;height:193mm"><div class="pair" style="gap:${Math.round(10.6640625*7+5)}px">${receiptHTML(list[i])}${list[i+1]?receiptHTML(list[i+1]):`<div style="width:${RC_W}px"></div>`}</div></div>`;
   }
-  doPrint("receipts",html,mode);
+  return doPrint("receipts",html,mode,`${g==="personal"?"Personal receipts":"Receipts"} ${monthLabel(ui.month)}`,quiet);
 }
 
 /* ---------- events ---------- */
@@ -1327,7 +1965,39 @@ function bind(){
   $("#bk-opening").addEventListener("change",e=>{ const id=e.target.id; if(id!=="bk-open-IQD"&&id!=="bk-open-USD") return;
     S.opening={month:startMonth(),IQD:num($("#bk-open-IQD").value)||0,USD:num($("#bk-open-USD").value)||0}; save(); renderBooks(); });
   $("#bk-opening").addEventListener("click",e=>{ if(e.target.id!=="bk-start-here") return; S.opening={...(S.opening||{IQD:0,USD:0}),month:ui.month}; save(); renderBooks(); });
-  $("#export-xlsx").addEventListener("click",exportXlsx);
+  $("#export-xlsx").addEventListener("click",()=>exportXlsx());
+  $("#ent-xlsx").addEventListener("click",exportLog);
+  $("#ent-reimb").addEventListener("click",()=>{ const l=logList(false).filter(e=>e.type==="expense"); if(!l.length){ toast("No expenses shown."); return; }
+    if(!confirm(`Mark ${l.length} expense(s) shown as reimbursable (paid from your advance, not the safe)?`)) return; l.forEach(e=>e.reimb=true); save(); renderAll(); toast(`${l.length} marked reimbursable.`); });
+  $("#rc-group").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; ui.rcGroup=b.dataset.g; renderAll(); });
+  $("#adv-person").addEventListener("change",e=>{ ui.person=e.target.value; renderMine(); });
+  $("#adv-all").addEventListener("click",e=>{ const a=e.target.closest("[data-person]"); if(!a) return; e.preventDefault(); ui.person=a.dataset.person; renderMine(); window.scrollTo(0,0); });
+  $("#adv-give").addEventListener("click",()=>openAdvance("advance"));
+  $("#adv-repay").addEventListener("click",()=>openAdvance("repay"));
+  $("#ad-save").addEventListener("click",saveAdvance);
+  $$("[data-adv]").forEach(b=>b.addEventListener("click",()=>$("#adv-dlg").close()));
+  document.addEventListener("click",async e=>{ const a=e.target.closest("[data-photo]"); if(!a) return; e.preventDefault(); openPhoto(a.dataset.photo); });
+  $("#mine-xlsx").addEventListener("click",async()=>{ const x=mineXlsx(); if(!x){ toast("Enter this month’s exchange rate first."); return; } await saveXlsx(x,`Advances ${personName(ui.person)} ${monthLabel(ui.month)}.xlsx`,ui.month); });
+  const mine=mode=>{ const h=mineHTML(); if(!h){ toast("Enter this month’s exchange rate first."); return; } doPrint("report",h,mode,`Advances ${personName(ui.person)} ${monthLabel(ui.month)}`); };
+  $("#mine-pdf").addEventListener("click",()=>mine("pdf")); $("#mine-print").addEventListener("click",()=>mine("print"));
+  $("#reg-xlsx").addEventListener("click",()=>saveXlsx(registerXlsx(),"Safe count register.xlsx",null));
+  $("#reg-pdf").addEventListener("click",()=>doPrint("report",registerHTMLReport(),"pdf","Safe count register"));
+  $("#rep-month").addEventListener("click",async e=>{ const k=e.target.dataset.rep; if(!k) return;
+    if(k==="all") return saveAllMonth();
+    if(k==="books-x") return exportXlsx();
+    if(k==="books-p"){ const h=reportHTML(); if(!h){ toast("Enter this month’s exchange rate first."); return; } return doPrint("report",h,"pdf"); }
+    if(k==="rc-safe") return printReceipts("pdf","safe");
+    if(k==="rc-personal") return printReceipts("pdf","personal");
+    if(k==="mine-x"){ const x=mineXlsx(myPersonId()); if(!x){ toast("Enter this month’s exchange rate first."); return; } return saveXlsx(x,`My ledger ${monthLabel(ui.month)}.xlsx`,ui.month); }
+    if(k==="mine-p"){ const h=mineHTML(myPersonId()); if(!h){ toast("Enter this month’s exchange rate first."); return; } return doPrint("report",h,"pdf",`My advances ${monthLabel(ui.month)}`); }
+    if(k==="log-x"){ const prev=ui.entSource; ui.entSource=""; const x=logXlsx(false); ui.entSource=prev; return saveXlsx(x,`Log ${monthLabel(ui.month)}.xlsx`,ui.month); } });
+  $("#staff-xlsx").addEventListener("click",()=>saveXlsx(staffXlsx(),`Staff advances ${monthLabel(ui.month)}.xlsx`,ui.month));
+  $("#rep-staff").addEventListener("click",e=>{ const b=e.target.closest("[data-st]"); if(!b) return; const pid=b.dataset.pid, loc=b.dataset.loc||null;
+    withLocation(loc||(CL.on?S.cloud.locId:null),()=>{ const name=`Advances ${personName(pid)} ${monthLabel(ui.month)}`;
+      if(b.dataset.st==="xlsx"){ const x=mineXlsx(pid); if(x) saveXlsx(x,name+".xlsx",ui.month); }
+      else { const h=mineHTML(pid); if(h) doPrint("report",h,"pdf",name); } }); });
+  ["tg-period","tg-which","tg-from","tg-to"].forEach(id=>$("#"+id).addEventListener("change",renderTelegram));
+  $("#tg-copy").addEventListener("click",async()=>{ const t=$("#tg-out"); try{ await navigator.clipboard.writeText(t.value); }catch(e){ t.select(); document.execCommand("copy"); } toast("Copied. Paste it into Telegram."); });
   $("#count-add").addEventListener("click",()=>openCount(null,ui.month));
   $("#bk-register").addEventListener("click",e=>{ const id=e.target.dataset.countEdit; if(id) openCount(id); });
   $("#c-save").addEventListener("click",saveCount);
@@ -1366,6 +2036,25 @@ function bind(){
   // settings
   const dlg=$("#settings");
   $("#open-settings").addEventListener("click",()=>openSettings());
+  $("#pp-add").addEventListener("click",()=>openPerson(null));
+  $("#pp-save").addEventListener("click",savePerson);
+  $$("[data-pp]").forEach(b=>b.addEventListener("click",()=>$("#pp-dlg").close()));
+  $$("[data-link]").forEach(b=>b.addEventListener("click",()=>$("#link-dlg").close()));
+  $("#link-copy").addEventListener("click",async()=>{ const i=$("#link-text"); try{ await navigator.clipboard.writeText(i.value); }catch(e){ i.select(); document.execCommand("copy"); } toast("Invite link copied."); });
+  $("#tab-people").addEventListener("click",e=>{ const t=e.target, find=id=>S.cloud.people.find(p=>p.id===id);
+    if(t.id==="pp-addloc") addLocation();
+    if(t.dataset.locRename){ e.preventDefault(); renameLocation(t.dataset.locRename); }
+    if(t.dataset.ppEdit) openPerson(find(t.dataset.ppEdit));
+    if(t.dataset.ppLink) newLink(find(t.dataset.ppLink)); });
+  $("#cloud-btn").addEventListener("click",()=>{ if(CL.on) syncNow({render:true}); else openSettings("cloud"); });
+  $("#loc-select").addEventListener("change",e=>switchLocation(e.target.value));
+  $("#cloud-box").addEventListener("click",e=>{ const id=e.target.id;
+    if(id==="cl-show-create"){ e.preventDefault(); $("#cl-create").hidden=false; }
+    if(id==="cl-join") cloudStart($("#cl-link").value,"join");
+    if(id==="cl-signin") cloudStart($("#cl-link").value,"signin");
+    if(id==="cl-create-go") cloudStart("","create");
+    if(id==="cl-sync") syncNow({render:true});
+    if(id==="cl-signout"&&confirm("Sign out of the HOH cloud on this computer? Your synced books stay safe in the cloud.")){ collectLocal(); S.cloud.sess=null; S.cloud.me=null; save(); renderCloud(); renderCloudHeader(); renderAll(); } });
   setupSigPad();
   $("#sheet-setup").addEventListener("click",()=>openSettings("sheet"));
   $("#sheet-sync").addEventListener("click",e=>syncFromSheet(e.currentTarget));
@@ -1376,7 +2065,7 @@ function bind(){
     $("#phone-link").value=l; $("#phone-link-box").hidden=false; $("#phone-link").select(); });
   $("#phone-link-copy").addEventListener("click",async()=>{ const i=$("#phone-link"); try{ await navigator.clipboard.writeText(i.value); toast("Link copied."); }catch(e){ i.select(); document.execCommand("copy"); toast("Link copied."); } });
   $("[data-close]",dlg).addEventListener("click",()=>dlg.close());
-  $$("[data-s]",dlg).forEach(el=>el.addEventListener("input",()=>{ S.settings[el.dataset.s]=el.value; save(); renderCounts(); }));
+  $$("[data-s]",dlg).forEach(el=>el.addEventListener("input",()=>{ S.settings[el.dataset.s]=el.value; if(CL.on&&SHARED_SETTINGS.includes(el.dataset.s)) S.cloud.settingsTouched=true; save(); renderCounts(); }));
   dlg.addEventListener("close",()=>renderAll());
   $("#backup-save").addEventListener("click",async()=>{
     if(NATIVE){ const path=`backups/Zip-Receipt-backup-${today()}.json`; try{ await native({cmd:"write",path,text:JSON.stringify(S,null,1)}); toast("Backup saved in Documents/Zip_Receipt/backups",7000,{label:"Show in folder",fn:()=>native({cmd:"reveal",path})}); }catch(e){ toast("Couldn’t save backup: "+(e.message||e)); } return; }
@@ -1397,7 +2086,11 @@ function setupShell(){
   $("#print-report").textContent="Save PDF report"; $("#print-receipts").textContent="Save PDF receipts";
   $("#backup-save").textContent="Save extra backup";
 }
-(async()=>{ await load(); bind(); setupShell(); renderAll(); })();
+(async()=>{ await load(); bind(); setupShell();
+  if(CL.on) loadLocation(S.cloud.locId);
+  renderAll(); renderCloudHeader();
+  if(S.cloud&&S.cloud.sess){ syncNow({quiet:true}); setInterval(()=>syncNow({quiet:true}),60000); }
+})();
 </script>
 </body>
 </html>

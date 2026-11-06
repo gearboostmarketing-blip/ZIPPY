@@ -2,7 +2,7 @@
 [Setup]
 AppId={{8C1F3B7E-6A0D-4E2B-9B7C-2F5A1D9E4C31}
 AppName=Zip Receipt
-AppVersion=1.0
+AppVersion=2.0
 AppPublisher=Hands of Hope (HOH)
 DefaultDirName={localappdata}\Programs\Zip Receipt
 DisableProgramGroupPage=yes

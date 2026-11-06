@@ -1,5 +1,5 @@
 /**
- * Zip Receipt v1.0 – Google Sheet backend
+ * Zip Receipt v1.1 – Google Sheet backend
  * Phones send expenses and safe counts here; Zip Receipt on the computer reads them back.
  * Everything goes in one tab, "Log", kept in date order. Zip Receipt sorts it into months itself.
  *
@@ -12,7 +12,7 @@
 
 const HEADERS = ['ID', 'Logged at', 'Date', 'Who', 'Amount', 'Currency', 'Description',
                  'Business', 'Category', 'Project', 'Shop receipt', 'Photo', 'Note', 'Status',
-                 'Type', 'Count IQD', 'Count USD'];
+                 'Type', 'Count IQD', 'Count USD', 'Reimbursable'];
 const SHEET_NAME = 'Log';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -146,10 +146,10 @@ function addEntry(x, photoBase64) {
     }
     sh.appendRow(isCount
       ? [clean(x.id, 60), new Date().toISOString(), clean(x.date, 10), clean(x.who, 80), '', '', 'Safe count',
-         '', '', '', '', '', clean(x.note), '', 'Safe count', Number(x.countIQD) || 0, Number(x.countUSD) || 0]
+         '', '', '', '', '', clean(x.note), '', 'Safe count', Number(x.countIQD) || 0, Number(x.countUSD) || 0, '']
       : [clean(x.id, 60), new Date().toISOString(), clean(x.date, 10), clean(x.who, 80), Number(x.amount),
          x.currency === 'USD' ? 'USD' : 'IQD', clean(x.description), clean(x.business, 120), clean(x.category, 80),
-         clean(x.project, 80), x.noShopReceipt ? 'No' : 'Yes', photoUrl, clean(x.note), '', 'Expense', '', '']);
+         clean(x.project, 80), x.noShopReceipt ? 'No' : 'Yes', photoUrl, clean(x.note), '', 'Expense', '', '', x.reimbursable ? 'Yes' : '']);
     sortByDate(sh);
     return { ok: true, id: x.id, photoUrl: photoUrl };
   } finally {
@@ -168,6 +168,7 @@ function listRows() {
     who: String(r[3] || ''), amount: Number(r[4]) || 0, currency: String(r[5] || 'IQD'), description: String(r[6] || ''),
     business: String(r[7] || ''), category: String(r[8] || ''), project: String(r[9] || ''), hasReceipt: String(r[10] || ''),
     photoUrl: String(r[11] || ''), note: String(r[12] || ''), status: String(r[13] || ''),
-    type: String(r[14] || 'Expense'), countIQD: r[15] === '' ? null : Number(r[15]), countUSD: r[16] === '' ? null : Number(r[16])
+    type: String(r[14] || 'Expense'), countIQD: r[15] === '' ? null : Number(r[15]), countUSD: r[16] === '' ? null : Number(r[16]),
+    reimbursable: String(r[17] || '') === 'Yes'
   }));
 }

@@ -190,13 +190,28 @@ sealed class MainForm : Form
                 }
                 case "http":
                 {
+                    // Fallback for reaching the HOH cloud / Google Sheet if the page's own request is blocked
                     var url = Str(r, "url") ?? "";
                     if (!url.StartsWith("https://") && !url.StartsWith("http://")) throw new InvalidOperationException("bad url");
                     var body = Str(r, "body");
-                    using var resp = body == null
-                        ? await Http.GetAsync(url)
-                        : await Http.PostAsync(url, new StringContent(body, System.Text.Encoding.UTF8, "text/plain"));
-                    result = await resp.Content.ReadAsStringAsync();
+                    var method = Str(r, "method") ?? (body == null ? "GET" : "POST");
+                    using var msg = new HttpRequestMessage(new HttpMethod(method), url);
+                    string? contentType = null;
+                    if (r.TryGetProperty("headers", out var hs) && hs.ValueKind == JsonValueKind.Object)
+                        foreach (var h in hs.EnumerateObject())
+                        {
+                            var v = h.Value.ToString();
+                            if (h.Name.Equals("Content-Type", StringComparison.OrdinalIgnoreCase)) contentType = v;
+                            else msg.Headers.TryAddWithoutValidation(h.Name, v);
+                        }
+                    if (body != null)
+                    {
+                        msg.Content = new StringContent(body, System.Text.Encoding.UTF8);
+                        msg.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(contentType ?? "text/plain");
+                    }
+                    using var resp = await Http.SendAsync(msg);
+                    var text = await resp.Content.ReadAsStringAsync();
+                    result = Bool(r, "full") ? new { status = (int)resp.StatusCode, text } : text;
                     break;
                 }
                 default:

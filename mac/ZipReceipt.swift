@@ -66,20 +66,29 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
             case "print":
                 runPrint(to: nil, landscape: body["landscape"] as? Bool ?? false, reply: replyHandler)
             case "http":
-                // Fallback for reaching the Google Sheet if the page's own request is blocked
+                // Fallback for reaching the HOH cloud / Google Sheet if the page's own request is blocked
                 guard let str = body["url"] as? String, let url = URL(string: str),
                       ["https", "http"].contains(url.scheme ?? "") else { throw BridgeError(message: "bad url") }
                 var req = URLRequest(url: url, timeoutInterval: 60)
-                if let text = body["body"] as? String {
-                    req.httpMethod = "POST"
-                    req.httpBody = text.data(using: .utf8)
-                    req.setValue("text/plain;charset=utf-8", forHTTPHeaderField: "Content-Type")
+                let text = body["body"] as? String
+                req.httpMethod = (body["method"] as? String) ?? (text == nil ? "GET" : "POST")
+                if let headers = body["headers"] as? [String: Any] {
+                    for (k, v) in headers { req.setValue("\(v)", forHTTPHeaderField: k) }
                 }
-                URLSession.shared.dataTask(with: req) { data, _, error in
-                    let text = data.flatMap { String(data: $0, encoding: .utf8) }
+                if let text = text {
+                    req.httpBody = text.data(using: .utf8)
+                    if req.value(forHTTPHeaderField: "Content-Type") == nil {
+                        req.setValue("text/plain;charset=utf-8", forHTTPHeaderField: "Content-Type")
+                    }
+                }
+                let full = body["full"] as? Bool == true
+                URLSession.shared.dataTask(with: req) { data, response, error in
+                    let out = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+                    let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                     DispatchQueue.main.async {
-                        if let text = text { replyHandler(text, nil) }
-                        else { replyHandler(nil, error?.localizedDescription ?? "no response") }
+                        if status == 0 { replyHandler(nil, error?.localizedDescription ?? "no response") }
+                        else if full { replyHandler(["status": status, "text": out], nil) }
+                        else { replyHandler(out, nil) }
                     }
                 }.resume()
             case "reveal":

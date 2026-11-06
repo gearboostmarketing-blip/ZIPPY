@@ -1,4 +1,4 @@
-# ⚡ Zip Receipt v1.0
+# ⚡ Zip Receipt v2.0
 
 Offline cash books and official org receipts for Hands of Hope (HOH), built from the cash log.
 
@@ -7,13 +7,37 @@ Offline cash books and official org receipts for Hands of Hope (HOH), built from
 - **Mac app:** saves automatically to `Documents/Zip_Receipt` and writes PDFs directly. GitHub builds a `Zip-Receipt.dmg` installer for you: see [`mac/README.md`](mac/README.md).
 - **Windows app:** the same, with a `Zip-Receipt-Setup.exe` installer that GitHub builds for you: see [`windows/README.md`](windows/README.md).
 
+## New in v2: HOH cloud
+
+One organisation, several locations, proper logins. Set up once with [`supabase/README.md`](supabase/README.md).
+
+| Role | Can do |
+|---|---|
+| **Admin** | Everything: every location, the all-locations report, People, HOH receipt settings. You can have several. |
+| **Bookkeeper** | Books, safe counts, receipts, reports and staff advances for their location(s). |
+| **Staff** | Phone only: log expenses with photos and see their own advance balance. |
+| **Viewer** | Read-only books for chosen locations. |
+
+- **People tab:** add locations and people, choose their role and locations, and send personal invite links. Staff join from a phone link with no password.
+- **Advances:** give advances to anyone, as many as needed. Expenses ticked **Reimbursable** (the default on staff phones) come off that person's advance instead of the safe; untick it when they paid with safe cash. When someone has no advance, the balance shows what HOH owes them. **Repayment** records paying them back, or money they return.
+- **Reports:** the all-locations table for admins, staff advance balances, and a PDF/Excel statement for each person.
+- **Sync:** every computer and phone syncs automatically and keeps working offline. The location switcher sits at the top of the window.
+
+Without the cloud, Zip Receipt still works on its own as before.
+
 ## What it does
 
 1. **Import.** Drop in a Telegram chat export (*Export chat history → HTML*), a WhatsApp `.txt` export, or a spreadsheet (`.xlsx` or `.csv`), paste lines, or click **Sync phones**. Every line lands in its month by date. Nothing is ever cleared.
 2. **Pick a month** with the switcher at the top of **Log**, **Books** and **Receipts**.
 3. **Log.** Review each amount: type (Expense, Advance, Salary, Money in, Safe count, Skip) and currency (IQD / USD). Yellow rows need a look. **Split** breaks up lines that bundle several purchases.
 4. **Books.** Everything in US dollars at the month's exchange rate. Each month opens with the balance carried from the month before; after a safe count, it carries the counted cash. The **safe count register** holds every count, from the desk or from phones, and the latest one is the month's actual. The month report exports as **PDF** or **Excel**.
-5. **Receipts.** One official HOH org receipt per expense, for the month. Fill in business, category, project and items, mark each one reviewed, then print two per A4 landscape page or save as a PDF.
+5. **Receipts.** One official HOH org receipt per expense, for the month. **Safe** and **Personal** receipts are kept apart. Fill in business, category, project and items, mark each one reviewed, then print two per A4 landscape page or save as a PDF.
+
+**Advances and reimbursables:** an advance from the safe counts as money out of the safe. Tick **Mine** on your own advances (it's guessed from your name in **Settings → My name**). Tick **Reimb.** on expenses you paid from your advance or your own pocket, in the Log or on the phone. Those come off your advance, not the safe. The **My ledger** tab shows the balance month by month: advance money you still hold, or what HOH owes you.
+
+**Reports tab:** everything for the month (safe books, safe receipts, my ledger, personal receipts, the full log) as PDF or Excel, with **Save all** on Mac and Windows. It also has the safe count register month by month, and **Copy for Telegram**: this week's, last week's or the month's expenses in the import line format.
+
+**Log export:** the Log tab exports what's shown (pick a source such as your Telegram chat) as Excel, for this month or all months.
 
 **Safe count reminder:** in the last three days of a month (and the first five of the next), if no count has been recorded for that month, Zip Receipt and the phone app both show a reminder.
 
@@ -35,4 +59,4 @@ The receipt copies `HOH_Org_Receipt_Template.xlsx`. The header text, statement w
 
 ## Releases
 
-To publish a version, create a tag such as `v1.0` in GitHub Desktop (**History**, right-click the latest commit, **Create Tag**) and push it. GitHub builds both installers and attaches `Zip-Receipt.dmg` and `Zip-Receipt-Setup.exe` to a **Release** you can link staff to.
+To publish a version, create a tag such as `v1.1` in GitHub Desktop (**History**, right-click the latest commit, **Create Tag**) and push it. GitHub builds both installers and attaches `Zip-Receipt.dmg` and `Zip-Receipt-Setup.exe` to a **Release** you can link staff to.
