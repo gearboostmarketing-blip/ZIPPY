@@ -429,6 +429,7 @@ body.native .web-only{display:none}
     <label class="f">Policy<input type="text" data-z="policy"></label>
     <label class="f">Paid Through (safe expenses)<input type="text" data-z="paidThrough"></label>
     <label class="f">“Personal Expense (Iraq Use)” field<select data-z="personalCF"><option value="true">true</option><option value="false">false</option><option value="">leave empty</option></select></label>
+    <label class="f">Approver email (optional)<input type="email" data-z="approver" placeholder="leave empty to choose in Zoho"></label>
     <label class="f">Report name<input type="text" data-z="reportName"></label>
     <label class="f">Business purpose<input type="text" data-z="purpose"></label>
     <label class="full row" style="gap:8px;font-weight:600"><input type="checkbox" data-z="salaries"> Include salaries in the safe report</label>
@@ -1365,37 +1366,25 @@ function zohoLines(group, m){
     group==="personal" ? (e.type==="expense"&&!!e.reimb) : (!e.reimb&&(e.type==="expense"||(z.salaries&&e.type==="salary"))))));
 }
 function zohoRefs(m){ const map={}; ["safe","personal"].forEach(g=>zohoLines(g,m).forEach((e,i)=>{ map[e.id]=`ZR-${m}-${g==="personal"?"P":""}${String(i+1).padStart(3,"0")}`; })); return map; }
+// Zoho Expense's own import template (Reports → Import Reports): 23 columns, text quoted, numbers bare
+const ZOHO_IMPORT_COLS=["Report Name","Start Date","End Date","Report Number","Currency Code","Expense Date","Mileage Rate","Mileage Unit","Distance","IsReimbursable","Exchange Rate","Expense Amount","Location","Expense Description","Expense Category","ApproverEmailID","Reference#","Merchant Name","Is Billable","Customer Name","Start Odometer Reading","End Odometer Reading","Entry Number"];
 function zohoCSV(group, m){
   m=m||ui.month; const z=zs(), list=zohoLines(group,m), refs=zohoRefs(m), rate=rateFor(m).rate, [y,mm]=m.split("-");
   if(!list.length) return null;
   if(list.some(e=>e.currency==="IQD")&&!rate) throw new Error(`Set ${monthLabel(m)}’s exchange rate on the Books tab first.`);
   const usd=e=>e.currency==="USD"?Math.abs(e.amount):Math.abs(e.amount)/rate;
-  const f6=v=>(+v).toFixed(6), f3=v=>(+v).toFixed(3), f12=v=>(+v).toFixed(12);
-  const last=new Date(+y,+mm,0).getDate(), total=list.reduce((a,e)=>a+usd(e),0), reimb=list.filter(e=>e.reimb).reduce((a,e)=>a+usd(e),0);
+  const num=v=>String(+(+v).toFixed(12));          // 1000, 62.02, 0.000641025641
+  const last=new Date(+y,+mm,0).getDate(), total=list.reduce((a,e)=>a+usd(e),0);
   const name=zFill(z.reportName,m)+(group==="personal"?" Personal":"");
-  const purpose=group==="personal"?`${MONTH_NAMES[+mm-1]} Personal Expenses`:zFill(z.purpose,m);
-  const rows=list.map(e=>{ const rc=e.rc||{}, amt=Math.abs(e.amount), u=usd(e), xr=e.currency==="USD"?1:1/rate, re=!!e.reimb, proj=rc.project||S.settings.defaultProject||"";
-    const r={"Report Name":name,"Start Date":`${m}-01`,"End Date":`${m}-${String(last).padStart(2,"0")}`,"Report Created By Name":z.name,"Report Created By Email":z.email,
-      "Business Purpose":purpose,"Is Archived":"false","Employee Name":z.name,"Department Name":z.dept,"Currency Code":"USD",
-      "Total":f3(total),"Total (RCY)":f3(total),"Reimbursable Total":f3(reimb),"Reimbursable Total (RCY)":f3(reimb),
-      "Expense Date":e.date,"Mileage Rate":"0.000000","Payment Mode":"Cash","Mileage Unit":"Kilometer","Mileage Type":"NonMileage","Distance":"0.000",
-      "IsReimbursable":String(re),"Is Personal":"false","Is Billable":"false","Exchange Rate":f12(xr),"RCY Exchange Rate":f12(xr),"Is Inclusive Tax":"false",
-      "Expense Item Date":e.date,"Item Order":"1","Tax Type":"ItemAmount","Expense Amount":f6(amt),"Adjustment":"0.000000","RCY Adjustment":"0.000000",
-      "AmountToBeReimbursed":f3(re?u:0),"RCYAmountToBeReimbursed (in Reimbursement Currency)":f3(re?u:0),"Expense Amount (in Reimbursement Currency)":f6(u),
-      "Expense Tax Amount":"0.000000","Expense Tax Amount in BCY":"0.000","Expense Tax Amount (in Reimbursement Currency)":"0.000000",
-      "Expense Total Amount":f6(amt),"Expense Total Amount (in Reimbursement Currency)":f6(u),"Expense Total Amount (in Base Currency)":f6(u),
-      "Expense SubTotal Amount":f6(amt),"Expense SubTotal Amount (in Reimbursement Currency)":f6(u),"Expense Total Without Tax":f6(amt),
-      "Expense Total Without Tax (in Reimbursement Currency)":f6(u),"Expense SubTotal (BCY)":f3(u),"Actual Expense Claimed Amount":f3(amt),"Actual Expense Claimed Amount (BCY)":f3(u),
-      "Expense Currency Code":e.currency,"Reimbursement Currency Code":"USD","Reference#":refs[e.id],"Expense Description":e.desc||"",
-      "Expense Category":zCat(e),
-      "Paid Through":re?"":z.paidThrough,"Merchant Name":rc.business||e.who||"","Expense Customer Name":proj,"Expense Project Name":proj,
-      "Expense Createdby Name":z.name,"Expense Createdby Email":z.email,"Expense Created By":z.name,
-      "Fund (Project and Fund should be the same, but project selected above merely determines approver.)":proj,"Policy":z.policy,
-      "Expense.CF.Personal Expense (Iraq Use)":z.personalCF};
-    return ZOHO_COLS.map(c=>r[c]===undefined?"":r[c]); });
-  const q=v=>/[",\n\r]/.test(v)?`"${String(v).replace(/"/g,'""')}"`:v;
+  const number=`ZIPPY-${m}${group==="personal"?"-P":""}`;
+  const T=v=>({t:String(v??"")}), N=v=>({n:v}), E={e:1}, B=v=>({b:v});
+  const rows=list.map((e,i)=>{ const rc=e.rc||{}, proj=rc.project||S.settings.defaultProject||"";
+    const xr=e.currency==="USD"?1:1/rate;
+    return [T(name),T(`${m}-01`),T(`${m}-${String(last).padStart(2,"0")}`),T(number),T(e.currency),T(e.date),N(0),E,N(0),T(String(!!e.reimb)),N(num(xr)),N(num(Math.abs(e.amount))),E,
+      T(e.desc||""),zCat(e)?T(zCat(e)):E,z.approver?T(z.approver):E,T(refs[e.id]),(rc.business||e.who)?T(rc.business||e.who):E,B("FALSE"),proj?T(proj):E,N(0),N(0),N(i+1)]; });
+  const cell=c=>c.e?"":c.b?c.b:c.n!==undefined?String(c.n):`"${c.t.replace(/"/g,'""')}"`;
   return { name, count:list.length, total, missing:z.catMode==="zippy"?list.filter(e=>!zCat(e)).length:0,
-    csv:[ZOHO_COLS,...rows].map(r=>r.map(q).join(",")).join("\n")+"\n" };
+    csv:[ZOHO_IMPORT_COLS.map(h=>`"${h}"`).join(","),...rows.map(r=>r.map(cell).join(","))].join("\n")+"\n" };
 }
 async function saveText(text, name, folder, mime){
   if(NATIVE){ const path=folder?`${folder}/${name}`:name;
