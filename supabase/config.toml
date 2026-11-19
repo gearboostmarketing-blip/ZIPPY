@@ -1,0 +1,4 @@
+# Only used if you deploy with the Supabase CLI. Zoho's sign-in page returns to the function
+# without a Supabase login, so the function checks logins itself.
+[functions.zoho]
+verify_jwt = false

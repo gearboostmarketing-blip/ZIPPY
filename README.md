@@ -1,4 +1,4 @@
-# ⚡ ZIPPY v2.3
+# ⚡ ZIPPY v2.4
 
 Offline cash books and official org receipts for Hands of Hope (HOH), built from the cash log.
 
@@ -36,6 +36,8 @@ Without the cloud, Zip Receipt still works on its own as before.
 **Advances and reimbursables:** an advance from the safe counts as money out of the safe. Tick **Mine** on your own advances (it's guessed from your name in **Settings → My name**). Tick **Reimb.** on expenses you paid from your advance or your own pocket, in the Log or on the phone. Those come off your advance, not the safe. The **My ledger** tab shows the balance month by month: advance money you still hold, or what HOH owes you.
 
 **Reports tab:** everything for the month (safe books, safe receipts, my ledger, personal receipts, the full log) as PDF or Excel, with **Save all** on Mac and Windows. It also has the safe count register month by month, and **Copy for Telegram**: this week's, last week's or the month's expenses in the import line format.
+
+**Zoho Expense:** with HOH cloud, **Reports → Send to Zoho Expense** sends the month's safe and personal reports straight into Zoho as draft reports, with receipt PDFs and phone photos attached. QuickBooks gets them from Zoho once they're approved. Set it up once with the Zoho section of [`supabase/README.md`](supabase/README.md). Without HOH cloud, the CSV buttons make files to import by hand.
 
 **Log export:** the Log tab exports what's shown (pick a source such as your Telegram chat) as Excel, for this month or all months.
 

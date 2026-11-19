@@ -140,7 +140,7 @@ sealed class MainForm : Form
                 case "read":
                 {
                     var path = SafePath(Str(r, "path"));
-                    result = File.Exists(path) ? await File.ReadAllTextAsync(path) : null;
+                    result = !File.Exists(path) ? null : Bool(r, "base64") ? Convert.ToBase64String(await File.ReadAllBytesAsync(path)) : await File.ReadAllTextAsync(path);   // base64: binary files such as a receipt PDF for Zoho
                     break;
                 }
                 case "write":

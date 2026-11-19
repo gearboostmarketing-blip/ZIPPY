@@ -120,7 +120,12 @@ final class Bridge: NSObject, WKScriptMessageHandlerWithReply, WKUIDelegate, WKN
             case "read":
                 let url = try safeURL(body["path"] as? String)
                 if fm.fileExists(atPath: url.path) {
-                    replyHandler(try String(contentsOf: url, encoding: .utf8), nil)
+                    if body["base64"] as? Bool == true {
+                        // binary files such as a receipt PDF on its way to Zoho
+                        replyHandler(try Data(contentsOf: url).base64EncodedString(), nil)
+                    } else {
+                        replyHandler(try String(contentsOf: url, encoding: .utf8), nil)
+                    }
                 } else {
                     replyHandler(nil, nil)
                 }

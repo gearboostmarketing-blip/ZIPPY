@@ -322,3 +322,50 @@ drop policy if exists receipts_read on storage.objects;
 create policy receipts_read on storage.objects for select to authenticated using (
   bucket_id = 'receipts' and (storage.foldername(name))[1] = my_org()::text
   and (can_view(((storage.foldername(name))[2])::uuid) or (storage.foldername(name))[3] = my_member_id()::text));
+
+-- ---------- Zoho Expense connection (v2.4) ----------
+-- Only the "zoho" cloud function reads or writes these (row level security is on, with no rules for the app),
+-- so the Zoho login token never reaches any computer or phone.
+create table if not exists public.zoho_connection (
+  org_id uuid primary key references public.orgs(id) on delete cascade,
+  refresh_token text not null,
+  access_token text,
+  access_expires timestamptz,
+  accounts_server text not null default 'https://accounts.zoho.com',
+  api_domain text not null default 'https://www.zohoapis.com',
+  zoho_org_id text,
+  zoho_org_name text,
+  connected_by uuid references public.members(id) on delete set null,
+  connected_at timestamptz not null default now()
+);
+create table if not exists public.zoho_oauth_state (
+  state text primary key,
+  org_id uuid not null references public.orgs(id) on delete cascade,
+  member_id uuid references public.members(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+-- One Zoho report per location, month and group (safe / personal)
+create table if not exists public.zoho_reports (
+  org_id uuid not null references public.orgs(id) on delete cascade,
+  location_id uuid not null,
+  month text not null,
+  grp text not null check (grp in ('safe','personal')),
+  report_id text not null,
+  report_name text,
+  created_at timestamptz not null default now(),
+  primary key (org_id, location_id, month, grp)
+);
+-- Which ZIPPY line became which Zoho expense, so sending twice never makes duplicates
+create table if not exists public.zoho_links (
+  org_id uuid not null references public.orgs(id) on delete cascade,
+  entry_id text not null,
+  expense_id text not null,
+  report_id text,
+  has_receipt boolean not null default false,
+  sent_at timestamptz not null default now(),
+  primary key (org_id, entry_id)
+);
+alter table public.zoho_connection enable row level security;
+alter table public.zoho_oauth_state enable row level security;
+alter table public.zoho_reports enable row level security;
+alter table public.zoho_links enable row level security;

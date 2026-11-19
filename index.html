@@ -163,6 +163,14 @@ table.data a{color:var(--accent);text-decoration:none}
 .mine-big{font-size:26px;font-weight:700;letter-spacing:-.02em}
 .psel{height:28px;padding:0 4px;font-size:12.5px;max-width:130px}
 .pchk{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap}
+.zh-direct{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.zh-direct:empty{display:none}
+.zh-direct .conn{display:flex;align-items:center;gap:8px;flex:1;min-width:240px}
+.zh-direct .conn .dot{width:7px;height:7px;border-radius:50%;background:var(--in);flex:none}
+.zh-direct .conn .dot.off{background:var(--faint)}
+.zh-files{margin-top:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.zr-list{margin:6px 0 12px;padding-left:18px}
+.zr-list li{margin:3px 0}
 .pill{font-size:11.5px;font-weight:500;border-radius:4px;padding:1px 6px;background:var(--accent-soft);color:var(--accent)}
 
 /* ── Month bar ── */
@@ -300,7 +308,7 @@ body.native .web-only{display:none}
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="sidebar__top"><div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>ZIPPY</b><span class="ver">v2.3</span><span id="org-short"></span></div></div>
+  <div class="sidebar__top"><div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>ZIPPY</b><span class="ver">v2.4</span><span id="org-short"></span></div></div>
   <div class="sidebar__loc"><select id="loc-select" class="locsel" hidden aria-label="Location"></select></div>
   <nav class="tabs" role="tablist" aria-label="Main">
     <button role="tab" data-tab="import" aria-selected="true"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span>Import</button>
@@ -515,8 +523,15 @@ body.native .web-only{display:none}
     <label class="f" id="zd-ph-row">Placeholder category<input type="text" data-z="catPlaceholder"></label>
     <div class="full hint">In names and purposes, {name}, {Month} and {Year} are filled in for you. Zoho needs each category to match one of its own categories exactly; set the Zoho name for each ZIPPY category below.</div>
     <div class="full" id="zd-cats"></div>
+    <div class="full hint" id="zd-zoho-note"></div>
   </div>
   <div class="df"><button class="btn primary" data-zd="close">Done</button></div>
+</dialog>
+
+<dialog id="zr-dlg" style="width:min(560px,94vw)">
+  <div class="dh"><b id="zr-title">Zoho</b><button class="btn small" data-zr="close">Close</button></div>
+  <div style="padding:18px 20px;max-height:65vh;overflow:auto" id="zr-body"></div>
+  <div class="df"><button class="btn" id="zr-settings">Zoho settings</button><button class="btn primary" data-zr="close">Done</button></div>
 </dialog>
 
 <dialog id="loc-dlg" style="width:min(420px,94vw)">
@@ -556,16 +571,20 @@ body.native .web-only{display:none}
   <h3 class="sec" style="margin-top:26px">Send to Zoho Expense</h3>
   <div class="panel" id="zoho-panel">
     <div class="row" style="align-items:flex-start;gap:16px">
-      <div style="flex:1;min-width:260px"><b id="zh-title">Zoho files</b>
+      <div style="flex:1;min-width:260px"><b id="zh-title">Zoho Expense</b>
         <div class="hint" id="zh-info" style="margin-top:4px"></div></div>
       <div class="row" style="flex-wrap:wrap;justify-content:flex-end">
         <button class="btn" id="zh-settings">Zoho settings</button>
-        <button class="btn" data-zoho="personal">Personal report CSV</button>
-        <button class="btn primary" data-zoho="safe">Safe report CSV</button>
-        <button class="btn" id="zh-receipts">Receipts for Zoho</button>
       </div>
     </div>
-    <p class="hint" style="margin:10px 0 0">In Zoho Expense: <b>Reports → ⋯ → Import Reports</b>, choose the CSV, check the columns line up, then <b>Import</b>. Zoho can’t import receipts, so attach each file from <b>Receipts for Zoho</b> to the expense with the same reference number (ZR-…).</p>
+    <div id="zh-direct" class="zh-direct"></div>
+    <div class="zh-files">
+      <span class="hint">Or download files to import by hand:</span>
+      <button class="btn small" data-zoho="safe">Safe report CSV</button>
+      <button class="btn small" data-zoho="personal">Personal report CSV</button>
+      <button class="btn small" id="zh-receipts">Receipts for Zoho</button>
+    </div>
+    <p class="hint" style="margin:10px 0 0" id="zh-csv-help">In Zoho Expense: <b>Reports → ⋯ → Import Reports</b>, choose the CSV, check the columns line up, then <b>Import</b>. Zoho can’t import receipts, so attach each file from <b>Receipts for Zoho</b> to the expense with the same reference number (ZR-…).</p>
   </div>
   <h3 class="sec" style="margin-top:26px">Copy for Telegram</h3>
   <div class="panel">
@@ -617,7 +636,7 @@ body.native .web-only{display:none}
     <label class="f">Exchange rate: IQD per $1 (also on the Books tab)<input type="text" inputmode="decimal" data-s="rate"></label>
     <div class="full hint">Data is saved automatically. Use a backup file to move work to another computer or keep a record of each month.</div>
     <h3 class="full set-h">Updates</h3>
-    <div class="full row"><span id="upd-status" class="hint">ZIPPY v2.3</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
+    <div class="full row"><span id="upd-status" class="hint">ZIPPY v2.4</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
     <label class="f full">GitHub repository for updates<input type="text" data-s="updateRepo" placeholder="filled in automatically, e.g. yourname/zip-receipt"></label>
 
     <h3 class="full set-h">Signatures</h3>
@@ -644,7 +663,7 @@ body.native .web-only{display:none}
     <button class="btn" id="backup-load">Open backup file</button>
     <input type="file" id="backup-file" accept=".json" hidden>
     <div class="spacer"></div>
-    <span class="hint">ZIPPY v2.3</span>
+    <span class="hint">ZIPPY v2.4</span>
   </div>
 </dialog>
 
@@ -668,7 +687,7 @@ const DEFAULT_SETTINGS = {
   useSignatures:true, signatures:{}, phoneUrl:"", me:""
 };
 
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
 const UPDATE_REPO = "__UPDATE_REPO__";   // filled in by the GitHub build, e.g. "you/zip-receipt"
 let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{}, counts:[], monthRates:{}, opening:null, viewMonth:"" };
 const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", rcGroup:"safe", month:"" };
@@ -1494,16 +1513,114 @@ async function zohoReceipts(){
 }
 function renderZoho(){
   const el=$("#zh-info"); if(!el) return; const m=ui.month, s=zohoLines("safe",m), p=zohoLines("personal",m), ph=[...s,...p].filter(e=>!e.receipt&&e.photoPath).length, off=s.length+p.length-[...s,...p].filter(e=>e.receipt).length-ph;
-  $("#zh-title").textContent=`Zoho files · ${monthLabel(m)}`;
+  $("#zh-title").textContent=`Zoho Expense · ${monthLabel(m)}`; renderZohoDirect();
   el.innerHTML=`Safe report: <b>${s.length}</b> expense${s.length===1?"":"s"}${zs().salaries?" (with salaries)":""} · Personal report: <b>${p.length}</b> reimbursable · Receipts: <b>${s.length+p.length-off-ph}</b> official${ph?`, <b>${ph}</b> phone photo${ph===1?"":"s"}`:""}${off?`, ${off} paper shop receipt${off===1?"":"s"}`:""}`;
 }
+
+/* ---------- Zoho Expense: straight from ZIPPY, through HOH cloud ---------- */
+// The Zoho sign-in lives in the "zoho" cloud function (supabase/functions/zoho); this side only asks it to act.
+const ZC={status:null,lookup:null,busy:false,poll:null};
+const zfn=(action,body)=>sb("POST","/functions/v1/zoho",{action,...(body||{})});
+async function zohoStatus(force){
+  if(!CL.on){ ZC.status=null; return null; }
+  if(ZC.status&&!ZC.status.error&&!force) return ZC.status;
+  try{ ZC.status=await zfn("status"); }catch(e){ ZC.status={error:e.message}; }
+  return ZC.status;
+}
+function zohoReportMeta(group,m){ const z=zs(), [y,mm]=m.split("-"), last=new Date(+y,+mm,0).getDate();
+  return {name:zFill(z.reportName,m)+(group==="personal"?" Personal":""), start:`${m}-01`, end:`${m}-${String(last).padStart(2,"0")}`, purpose:zFill(z.purpose,m)}; }
+function zohoPayload(group,m){
+  const list=zohoLines(group,m); if(!list.length) return null;
+  const refs=zohoRefs(m), rate=rateFor(m).rate;
+  if(list.some(e=>e.currency==="IQD")&&!rate) throw new Error(`Set ${monthLabel(m)}’s exchange rate on the Books tab first.`);
+  const lines=list.map(e=>{ const rc=e.rc||{};
+    return {id:e.id,date:e.date,currency:e.currency,amount:Math.abs(e.amount),rate:e.currency==="USD"?1:+(1/rate).toFixed(12),desc:e.desc||"",
+      category:zCat(e),merchant:rc.business||e.who||"",project:rc.project||S.settings.defaultProject||"",reimb:!!e.reimb,ref:refs[e.id]}; });
+  return {report:zohoReportMeta(group,m),lines,entries:list,refs};
+}
+const zFile=(ref,e)=>`${ref} ${e.date} ${(e.desc||"").replace(/[\\/:*?"<>|#]+/g," ").slice(0,40).trim()}`;
+async function receiptPdfBase64(e,ref){   // Mac and Windows apps: save the official receipt as a PDF, then read it back
+  const nm=zFile(ref,e);
+  if(!await doPrint("receipts",`<div class="ppage" style="width:281mm;height:193mm">${receiptHTML(e)}</div>`,"pdf",`Zoho receipts/${nm}`,true)) return null;
+  return await native({cmd:"read",path:`${ui.month}/Zoho receipts/${nm}.pdf`,base64:true});
+}
+function zohoDialog(title,html){ $("#zr-title").textContent=title; $("#zr-body").innerHTML=html; if(!$("#zr-dlg").open) $("#zr-dlg").showModal(); }
+async function sendToZoho(group){
+  if(ZC.busy) return; const m=ui.month, label=group==="personal"?"personal":"safe";
+  const st=await zohoStatus(true); if(!st||!st.connected){ toast(st&&st.error?st.error:"Connect Zoho first."); renderZohoDirect(); return; }
+  let p; try{ p=zohoPayload(group,m); }catch(e){ toast(e.message,8000); return; }
+  if(!p){ toast(`No ${group==="personal"?"reimbursable (personal)":"safe"} expenses in ${monthLabel(m)}.`); return; }
+  if(zs().catMode!=="zippy"&&!confirm("Zoho needs a real category on every expense, and your Zoho settings leave categories empty or use a placeholder. Send anyway?")) return;
+  ZC.busy=true; renderZohoDirect();
+  try{
+    toast(`Sending the ${label} report to Zoho (${p.lines.length} line${p.lines.length===1?"":"s"})…`,120000);
+    const r=await zfn("send",{location_id:S.cloud.locId,month:m,group,report:p.report,lines:p.lines});
+    if(!r.ok){ $$(".toast").forEach(x=>x.remove());
+      zohoDialog("Fix these before sending",`<p style="margin-top:0">Nothing was sent. Zoho needs:</p><ul class="zr-list">${(r.problems||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>${r.categories&&r.categories.length?`<p class="hint">Zoho’s categories: ${r.categories.map(esc).join(", ")}. Match each ZIPPY category to one of them in <b>Zoho settings</b>.</p>`:""}`); return; }
+    const todo=p.entries.filter(e=>r.lines[e.id]&&!r.lines[e.id].has_receipt&&(e.receipt||e.photoPath));
+    let att=0, web=0; const failed=[];
+    for(let i=0;i<todo.length;i++){ const e=todo[i], ref=p.refs[e.id];
+      toast(`Attaching receipts in Zoho… ${i+1} of ${todo.length}`,120000);
+      try{
+        if(e.receipt){ if(!NATIVE){ web++; continue; }
+          const data=await receiptPdfBase64(e,ref); if(!data){ failed.push(`${ref}: couldn’t make the PDF`); continue; }
+          await zfn("attach",{location_id:S.cloud.locId,entry_id:e.id,filename:`${ref} receipt.pdf`,mime:"application/pdf",data}); att++; }
+        else { await zfn("attach",{location_id:S.cloud.locId,entry_id:e.id,photo_path:e.photoPath,filename:`${ref} photo.jpg`}); att++; }
+      }catch(err){ failed.push(`${ref}: ${err.message}`); }
+    }
+    $$(".toast").forEach(x=>x.remove());
+    const paper=p.entries.filter(e=>!e.receipt&&!e.photoPath).length, url=st.app_domain?`${st.app_domain}/app#/expensereports/${r.report_id}`:"";
+    zohoDialog(`Sent to Zoho`,`<p style="margin-top:0"><b>${esc(r.report_name)}</b> is in Zoho as a draft report${st.org_name?` in ${esc(st.org_name)}`:""}.</p>
+      <ul class="zr-list"><li>${r.created} new expense${r.created===1?"":"s"}${r.already?`, ${r.already} already there from before (not sent twice)`:""}</li>
+      <li>${att} receipt${att===1?"":"s"} attached</li>
+      ${web?`<li>${web} official receipt${web===1?"":"s"} not attached: the browser version can’t make PDF files. Send from the Mac or Windows app to attach them, or use <b>Receipts for Zoho</b>.</li>`:""}
+      ${paper?`<li>${paper} line${paper===1?" has":"s have"} a paper shop receipt: attach ${paper===1?"it":"them"} in Zoho.</li>`:""}</ul>
+      ${failed.length?`<p><b>Didn’t attach:</b></p><ul class="zr-list">${failed.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><p class="hint">Send again to retry: lines already in Zoho are skipped.</p>`:""}
+      ${r.warnings&&r.warnings.length?`<p><b>Check in Zoho:</b></p><ul class="zr-list">${r.warnings.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+      <p class="hint">Review it in Zoho, then submit it for approval there. Once approved, Zoho’s QuickBooks integration takes it to QuickBooks.</p>
+      ${url?`<p><a class="photo-link" href="${esc(url)}" target="_blank" rel="noreferrer">Open the report in Zoho →</a></p>`:""}`);
+  }catch(e){ $$(".toast").forEach(x=>x.remove()); toast(e.message,10000); }
+  finally{ ZC.busy=false; renderZohoDirect(); }
+}
+async function connectZoho(){
+  const w=NATIVE?null:window.open("about:blank","_blank");   // browsers block pop-ups opened after a wait
+  try{ const r=await zfn("connect"); if(w) w.location.href=r.url; else window.open(r.url,"_blank");
+    toast("Sign in to Zoho and click Accept in your browser, then come back here.",15000);
+    clearInterval(ZC.poll); let n=0;
+    ZC.poll=setInterval(async()=>{ n++; const s=await zohoStatus(true); if(s&&s.connected){ clearInterval(ZC.poll); toast(`Zoho is connected${s.org_name?` (${s.org_name})`:""}.`); ZC.lookup=null; renderZohoDirect(); } else if(n>60) clearInterval(ZC.poll); },5000);
+  }catch(e){ if(w) w.close(); toast(e.message,10000); }
+}
+async function disconnectZoho(){
+  if(!confirm("Disconnect Zoho? ZIPPY stops sending until an admin connects it again. Nothing already in Zoho changes.")) return;
+  try{ await zfn("disconnect"); ZC.status=null; ZC.lookup=null; await zohoStatus(true); renderZohoDirect(); toast("Zoho disconnected."); }catch(e){ toast(e.message,8000); }
+}
+async function renderZohoDirect(){
+  const el=$("#zh-direct"); if(!el) return;
+  if(!CL.on){ el.innerHTML=`<div class="conn"><span class="dot off"></span><span class="hint">Sending straight to Zoho works through HOH cloud. Sign in under <b>Settings → HOH cloud</b>.</span></div>`; return; }
+  const st=ZC.status||await zohoStatus(); if(!$("#zh-direct")) return;
+  if(!st||st.error){ el.innerHTML=`<div class="conn"><span class="dot off"></span><span class="hint">${esc(st&&st.error?st.error:"Checking Zoho…")}</span></div><button class="btn small" id="zh-retry">Check again</button>`; return; }
+  const busy=ZC.busy?" disabled":"";
+  el.innerHTML=st.connected
+    ? `<div class="conn"><span class="dot"></span><span>Connected to <b>${esc(st.org_name||"Zoho Expense")}</b>${st.connected_by?` <span class="hint">· by ${esc(st.connected_by)}</span>`:""}</span></div>
+       <button class="btn"${busy} data-zsend="personal">Send personal report</button><button class="btn primary"${busy} data-zsend="safe">Send safe report</button>${st.can_connect?`<button class="btn small" id="zh-disconnect" title="Disconnect Zoho">Disconnect</button>`:""}`
+    : `<div class="conn"><span class="dot off"></span><span>Send reports and receipts straight to Zoho Expense.${st.can_connect?"":` <span class="hint">An admin connects it once for everyone.</span>`}</span></div>${st.can_connect?`<button class="btn primary" id="zh-connect">Connect Zoho</button>`:""}`;
+  $("#zh-csv-help").hidden=!!st.connected;
+}
+async function zohoCategorySuggestions(){   // in Zoho settings, suggest the organisation’s real categories
+  if(!CL.on) return; const st=await zohoStatus(); if(!st||!st.connected) return;
+  try{ ZC.lookup=ZC.lookup||await zfn("lookup"); }catch(e){ return; }
+  const dl=$("#dl-zcat"); if(!dl||!ZC.lookup.categories) return;
+  dl.innerHTML=ZC.lookup.categories.map(c=>`<option value="${esc(c)}">`).join("");
+  const n=$("#zd-zoho-note"); if(n) n.textContent=`Suggestions are the ${ZC.lookup.categories.length} categories in your Zoho organisation.`;
+}
+
 function openZoho(){
   const z=zs(), m=ui.month;
   $$("[data-z]").forEach(i=>{ const k=i.dataset.z; if(i.type==="checkbox") i.checked=!!z[k]; else i.value=z[k]??""; });
   const keys=[...new Set(S.entries.filter(e=>e.type==="expense"||e.type==="salary").map(zCatKey))].sort();
   const known=[...new Set(Object.values(z.cats).filter(Boolean))];
   $("#zd-cats").innerHTML=keys.length?`<table class="tbl" style="width:100%"><thead><tr><th>ZIPPY category</th><th>Zoho category</th></tr></thead><tbody>${keys.map(k=>`<tr><td>${esc(k)}</td><td><input type="text" data-zc="${esc(k)}" value="${esc(z.cats[k]||"")}" placeholder="${esc(k.startsWith("(")?(k==="(salary)"?"Salaries":"choose a Zoho category"):k)}" list="dl-zcat" style="width:100%"></td></tr>`).join("")}</tbody></table><datalist id="dl-zcat">${known.map(c=>`<option value="${esc(c)}">`).join("")}</datalist>`:`<p class="hint">No categories yet.</p>`;
-  zCatModeUI(); $("#zoho-dlg").showModal();
+  zCatModeUI(); $("#zoho-dlg").showModal(); zohoCategorySuggestions();
 }
 function zCatModeUI(){ const mode=zs().catMode; $("#zd-ph-row").hidden=mode!=="placeholder"; $("#zd-cats").hidden=mode!=="zippy"; }
 
@@ -2305,6 +2422,13 @@ function bind(){
   $$("[data-zoho]").forEach(b=>b.addEventListener("click",()=>exportZoho(b.dataset.zoho)));
   $("#zh-receipts").addEventListener("click",zohoReceipts);
   $("#zh-settings").addEventListener("click",openZoho);
+  $("#zh-direct").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.zsend) sendToZoho(b.dataset.zsend);
+    if(b.id==="zh-connect") connectZoho();
+    if(b.id==="zh-disconnect") disconnectZoho();
+    if(b.id==="zh-retry"){ ZC.status=null; renderZohoDirect(); } });
+  $$("[data-zr]").forEach(b=>b.addEventListener("click",()=>$("#zr-dlg").close()));
+  $("#zr-settings").addEventListener("click",()=>{ $("#zr-dlg").close(); openZoho(); });
   $("#zoho-dlg").addEventListener("input",e=>{ const z=zs(), t=e.target;
     if(t.dataset.z){ z[t.dataset.z]=t.type==="checkbox"?t.checked:t.value; save(); }
     if(t.dataset.zc!==undefined){ z.cats[t.dataset.zc]=t.value.trim(); save(); } });
