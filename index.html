@@ -260,6 +260,34 @@ body.native .web-only{display:none}
 @media (max-width:1050px){.rc-card{grid-template-columns:1fr}}
 .sidebar__loc:has(select[hidden]){display:none}
 
+
+/* ── Page heads: title left, actions right, like Lavaflo ── */
+section > .row:first-child{flex-wrap:nowrap;align-items:flex-end;gap:20px;margin-bottom:20px !important}
+section > .row:first-child > div:first-child{flex:1;min-width:0}
+section > .row:first-child > .row{flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+section > .row:first-child .sub{margin:0}
+/* ── Quiet, spreadsheet-like rows: controls show their edge only on hover or focus ── */
+table.data select,table.data input[type=date],table.data input[type=number]{border-color:transparent;background:transparent}
+table.data input:hover,table.data select:hover{background:var(--hover)}
+table.data input:focus,table.data select:focus{background:var(--panel);border-color:var(--accent)}
+table.data td.empty{border:0}
+/* settings tables */
+table.tbl{border-collapse:collapse;width:100%;border:1px solid var(--line);border-radius:8px}
+table.tbl th{text-align:left;font-size:12.5px;font-weight:500;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--line)}
+table.tbl td{padding:5px 10px;border-bottom:1px solid var(--line)}
+table.tbl tr:last-child td{border-bottom:0}
+/* Reports: one quiet button style per card, one accent card */
+.rep-card .btn.primary{background:var(--panel);color:var(--ink);border-color:var(--line-strong)}
+.rep-card .btn.primary:hover:not(:disabled){background:var(--hover)}
+.rep-card.all .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+/* Month picker */
+.monthbar .mjump{height:32px;width:170px}
+/* Import: how it works */
+.steps{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.steps li{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:13px}
+.steps li b{color:var(--ink);font-weight:500}
+.steps .n{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+
 /* ===== Official receipt replica (always paper-white) ===== */
 .receipt{position:relative;background:#fff;color:#000;display:inline-block}
 .receipt table{border-collapse:collapse;table-layout:fixed}
@@ -333,7 +361,7 @@ body.native .web-only{display:none}
 <main>
 <div class="monthbar" id="monthbar" hidden>
   <div class="mnav"><button id="m-prev" aria-label="Previous month">‹</button><select id="m-select" aria-label="Month"></select><button id="m-next" aria-label="Next month">›</button></div>
-  <label class="hint" style="display:flex;align-items:center;gap:6px">Go to month <input type="month" id="m-jump" style="padding:5px 6px"></label>
+  <input type="month" id="m-jump" class="mjump" hidden aria-label="Jump to a month">
   <span class="hint" id="m-info"></span>
 </div>
 <div id="update-slot"></div>
@@ -367,9 +395,15 @@ body.native .web-only{display:none}
     <div class="row"><div style="flex:1"><b>Phones</b><div class="hint" id="phones-info"></div></div>
       <button class="btn" id="phones-btn"></button></div>
   </div>
-  <div class="panel" style="margin-top:18px">
+  <div class="panel" style="margin-top:16px">
     <b>How it works</b>
-    <p class="hint" style="margin:6px 0 0">1. Import the log, paste lines, or sync phones. Everything lands in the right month by its date, and nothing is ever cleared. 2. Pick a month at the top of <b>Log</b>, <b>Books</b> or <b>Receipts</b>. 3. In the <b>Log</b>, fix anything highlighted yellow and set each line's type and currency. 4. <b>Books</b> shows the month in US dollars, carries the balance on from last month, and keeps the month's safe counts. 5. <b>Receipts</b> builds one official receipt per expense; export the month's report and receipts as PDF or Excel.</p>
+    <ol class="steps">
+      <li><span class="n">1</span><span><b>Bring it in.</b> Import the chat, paste lines or sync phones. Each line lands in its month; nothing is cleared.</span></li>
+      <li><span class="n">2</span><span><b>Check the Log.</b> Fix yellow rows and set each line’s type and currency.</span></li>
+      <li><span class="n">3</span><span><b>Books.</b> The month in US dollars, carried from last month, with the safe counts.</span></li>
+      <li><span class="n">4</span><span><b>Receipts.</b> One official receipt per expense, saved as PDFs.</span></li>
+      <li><span class="n">5</span><span><b>Reports.</b> Export the month, or send it straight to Zoho.</span></li>
+    </ol>
   </div>
 </section>
 
@@ -384,13 +418,13 @@ body.native .web-only{display:none}
       <button data-f="rc" aria-pressed="false">Receipts</button>
       <button data-f="skip" aria-pressed="false">Skipped</button>
     </div>
-    <input type="text" id="ent-search" placeholder="Search…" style="width:200px">
+    <input type="text" id="ent-search" placeholder="Search…" style="width:170px">
     <select id="ent-source"></select>
     <div class="spacer"></div>
-    <button class="btn" id="ent-reimb" title="Mark every line shown as paid from your advance">Mark shown as reimbursable</button>
+    <button class="btn" id="ent-reimb" title="Mark every line shown as paid from your advance">Mark reimbursable</button>
     <select id="ent-scope" title="What to export"><option value="month">This month</option><option value="all">All months</option></select>
     <button class="btn" id="ent-xlsx">Export Excel</button>
-    <button class="btn" id="ent-add">Add line</button>
+    <button class="btn primary" id="ent-add">Add line</button>
   </div>
   <div class="tablewrap"><table class="data" id="ent-table"></table></div>
 </section>
@@ -916,7 +950,7 @@ function setMonth(m){ ui.month=m; S.viewMonth=m; save(); renderAll(); }
 function renderMonthBar(){
   const bar=$("#monthbar"); bar.hidden=ui.tab==="import"||ui.tab==="people";
   const months=dataMonths(); if(!ui.month||!months.includes(ui.month)) ui.month=months.includes(S.viewMonth)?S.viewMonth:months[months.length-1];
-  $("#m-select").innerHTML=months.slice().reverse().map(m=>`<option value="${m}"${m===ui.month?" selected":""}>${monthLabel(m)}</option>`).join("");
+  $("#m-select").innerHTML=months.slice().reverse().map(m=>`<option value="${m}"${m===ui.month?" selected":""}>${monthLabel(m)}</option>`).join("")+`<option value="__other">Other month…</option>`;
   $("#m-prev").disabled=months.indexOf(ui.month)<=0; $("#m-next").disabled=months.indexOf(ui.month)>=months.length-1;
   const n=S.entries.filter(e=>inMonth(e.date,ui.month)).length;
   $("#m-info").textContent=`${n} line${n===1?"":"s"} in ${monthLabel(ui.month)}`;
@@ -2377,8 +2411,9 @@ function bind(){
   $("#reminder-slot").addEventListener("click",e=>{ const m=e.target.dataset.remind; if(m) openCount(null,m); });
   $("#m-prev").addEventListener("click",()=>{ const ms=dataMonths(), i=ms.indexOf(ui.month); if(i>0) setMonth(ms[i-1]); });
   $("#m-next").addEventListener("click",()=>{ const ms=dataMonths(), i=ms.indexOf(ui.month); if(i<ms.length-1) setMonth(ms[i+1]); });
-  $("#m-select").addEventListener("change",e=>setMonth(e.target.value));
-  $("#m-jump").addEventListener("change",e=>{ if(/^\d{4}-\d{2}$/.test(e.target.value)) setMonth(e.target.value); e.target.value=""; });
+  $("#m-select").addEventListener("change",e=>{ if(e.target.value==="__other"){ e.target.value=ui.month; const j=$("#m-jump"); j.hidden=false; j.focus(); try{ j.showPicker(); }catch(_){} return; } setMonth(e.target.value); });
+  $("#m-jump").addEventListener("change",e=>{ if(/^\d{4}-\d{2}$/.test(e.target.value)) setMonth(e.target.value); e.target.value=""; e.target.hidden=true; });
+  $("#m-jump").addEventListener("blur",e=>{ if(!e.target.value) e.target.hidden=true; });
   const rep=mode=>{ const h=reportHTML(); if(!h){ toast("Enter this month’s exchange rate first."); return; } doPrint("report",h,mode); };
   $("#print-report").addEventListener("click",()=>rep("pdf"));
   $("#print-report-dlg").addEventListener("click",()=>rep("print"));
