@@ -1,4 +1,4 @@
-# ⚡ ZIPPY v2.2
+# ⚡ ZIPPY v2.3
 
 Offline cash books and official org receipts for Hands of Hope (HOH), built from the cash log.
 
@@ -31,7 +31,7 @@ Without the cloud, Zip Receipt still works on its own as before.
 2. **Pick a month** with the switcher at the top of **Log**, **Books** and **Receipts**.
 3. **Log.** Review each amount: type (Expense, Advance, Salary, Money in, Safe count, Skip) and currency (IQD / USD). Yellow rows need a look. **Split** breaks up lines that bundle several purchases.
 4. **Books.** Everything in US dollars at the month's exchange rate. Each month opens with the balance carried from the month before; after a safe count, it carries the counted cash. The **safe count register** holds every count, from the desk or from phones, and the latest one is the month's actual. The month report exports as **PDF** or **Excel**.
-5. **Receipts.** One official HOH org receipt per expense, for the month. **Safe** and **Personal** receipts are kept apart. Fill in business, category, project and items, mark each one reviewed, then print two per A4 landscape page or save as a PDF.
+5. **Receipts.** One official HOH org receipt per expense, for the month. **Safe** and **Personal** receipts are kept apart. Fill in business, category, project and items, mark each one reviewed, then save them as PDFs: the Mac and Windows apps save **one PDF per receipt** in `Documents/Zip_Receipt/<month>/Receipts <Month Year>/` (numbered like the cards), and the browser version puts one receipt on each page. **Print…** still puts two receipts on each A4 landscape page to save paper.
 
 **Advances and reimbursables:** an advance from the safe counts as money out of the safe. Tick **Mine** on your own advances (it's guessed from your name in **Settings → My name**). Tick **Reimb.** on expenses you paid from your advance or your own pocket, in the Log or on the phone. Those come off your advance, not the safe. The **My ledger** tab shows the balance month by month: advance money you still hold, or what HOH owes you.
 
