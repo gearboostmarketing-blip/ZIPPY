@@ -58,7 +58,7 @@ In the **People** tab:
   - **The last admin** can't be removed.
 - **Offline:** the apps keep working without internet and catch up when the connection returns.
 
-## Zoho Expense connection (ZIPPY v2.4, about 15 minutes, once)
+## Zoho Expense connection (ZIPPY v2.6, about 15 minutes, once)
 
 This lets ZIPPY send each month's safe and personal reports straight into Zoho Expense, with receipts attached. The Zoho sign-in is kept in HOH cloud, never on a computer, so this repository can stay public. QuickBooks gets the expenses from Zoho (step 6).
 

@@ -323,7 +323,7 @@ create policy receipts_read on storage.objects for select to authenticated using
   bucket_id = 'receipts' and (storage.foldername(name))[1] = my_org()::text
   and (can_view(((storage.foldername(name))[2])::uuid) or (storage.foldername(name))[3] = my_member_id()::text));
 
--- ---------- Zoho Expense connection (v2.4) ----------
+-- ---------- Zoho Expense connection (v2.6) ----------
 -- Only the "zoho" cloud function reads or writes these (row level security is on, with no rules for the app),
 -- so the Zoho login token never reaches any computer or phone.
 create table if not exists public.zoho_connection (

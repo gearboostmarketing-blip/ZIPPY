@@ -336,7 +336,7 @@ table.tbl tr:last-child td{border-bottom:0}
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="sidebar__top"><div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>ZIPPY</b><span class="ver">v2.4</span><span id="org-short"></span></div></div>
+  <div class="sidebar__top"><div class="brand"><span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.2 2 4.5 13.4h6.1L9.8 22l8.7-11.4h-6.1L13.2 2z"/></svg></span><b>ZIPPY</b><span class="ver">v2.6</span><span id="org-short"></span></div></div>
   <div class="sidebar__loc"><select id="loc-select" class="locsel" hidden aria-label="Location"></select></div>
   <nav class="tabs" role="tablist" aria-label="Main">
     <button role="tab" data-tab="import" aria-selected="true"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></span>Import</button>
@@ -670,7 +670,7 @@ table.tbl tr:last-child td{border-bottom:0}
     <label class="f">Exchange rate: IQD per $1 (also on the Books tab)<input type="text" inputmode="decimal" data-s="rate"></label>
     <div class="full hint">Data is saved automatically. Use a backup file to move work to another computer or keep a record of each month.</div>
     <h3 class="full set-h">Updates</h3>
-    <div class="full row"><span id="upd-status" class="hint">ZIPPY v2.4</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
+    <div class="full row"><span id="upd-status" class="hint">ZIPPY v2.6</span><div class="spacer"></div><button class="btn small" id="upd-check">Check for updates</button></div>
     <label class="f full">GitHub repository for updates<input type="text" data-s="updateRepo" placeholder="filled in automatically, e.g. yourname/zip-receipt"></label>
 
     <h3 class="full set-h">Signatures</h3>
@@ -697,7 +697,7 @@ table.tbl tr:last-child td{border-bottom:0}
     <button class="btn" id="backup-load">Open backup file</button>
     <input type="file" id="backup-file" accept=".json" hidden>
     <div class="spacer"></div>
-    <span class="hint">ZIPPY v2.4</span>
+    <span class="hint">ZIPPY v2.6</span>
   </div>
 </dialog>
 
@@ -721,7 +721,7 @@ const DEFAULT_SETTINGS = {
   useSignatures:true, signatures:{}, phoneUrl:"", me:""
 };
 
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.6";
 const UPDATE_REPO = "__UPDATE_REPO__";   // filled in by the GitHub build, e.g. "you/zip-receipt"
 let S = { settings:{...DEFAULT_SETTINGS}, entries:[], sources:[], books:{}, counts:[], monthRates:{}, opening:null, viewMonth:"" };
 const ui = { tab:"import", entFilter:"all", entSearch:"", entSource:"", rcFilter:"all", rcGroup:"safe", month:"" };
